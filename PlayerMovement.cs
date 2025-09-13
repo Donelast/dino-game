@@ -3,16 +3,15 @@ namespace Sandbox;
 
 public sealed class PlayerMovement : Component
 {
-	const float JumpPower = 29000;
-
-	private Rigidbody _rigidbody;
-	private SoundPointComponent _soundPoint;
-
 	[Property, Range( 185, 650 )] float _playerSpeed = 185f;
 	[Property] readonly SoundEvent _hitHurtSound = null;
 	[Property] readonly SoundEvent _jumpSound = null;
 	[Property] public bool IsGrounded = true;
 	[Property] public PlayerStates CurrentState = PlayerStates.Playing;
+
+	private Rigidbody _rigidbody;
+	private SoundPointComponent _soundPoint;
+	const float JumpPower = 29000;
 
 	public enum PlayerStates
 	{
@@ -28,11 +27,11 @@ public sealed class PlayerMovement : Component
 	
 		if ( _hitHurtSound == null || _jumpSound == null )
 		{
-			Log.Warning( "One of the sounds is not specified in the inspector." );
+			Log.Warning( "Not all sounds were configured in the inspector." );
 		}
 		if ( _rigidbody == null || !_rigidbody.IsValid || _soundPoint == null || !_soundPoint.IsValid )
 		{
-			Log.Error( "One of the components (Rigid body, Sound Point Component) is missing or invalid. The game cannot be started. ☜(ﾟヮﾟ) " );
+			Log.Error( "The game cannot be started. Possible reasons: the Rigid Body and Sound Point are missing or not enabled. ☜(ﾟヮﾟ) " );
 			this.Enabled = false;
 		}
 	}
@@ -45,7 +44,6 @@ public sealed class PlayerMovement : Component
 			_soundPoint.StartSound();
 			_rigidbody.ApplyForce(new Vector3(0, 0, JumpPower));
         }
-		CheckStatus();
     }
 
     protected override void OnFixedUpdate()
@@ -56,14 +54,4 @@ public sealed class PlayerMovement : Component
 		}
     }
 
-	void CheckStatus()
-	{
-		if ( CurrentState == PlayerStates.Dead )
-		{
-			CurrentState = PlayerStates.MainMenu;
-			_soundPoint.SoundEvent = _hitHurtSound;
-			_soundPoint.StartSound();
-			_soundPoint.SoundEvent = _jumpSound;
-		}
-	}
 }

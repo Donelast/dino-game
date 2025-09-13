@@ -6,6 +6,7 @@ public sealed class MapControllerComponent : Component
 	readonly static Random _random = new Random();
 
 	[Property] GameObject _player = null;
+	//[Property] GameObject _playerStartPosition;
 	[Property, Range( 950f, 1300 )] float _spawnDistance = 950f;
 	[Property, Range( 5000, 2500 )] int _spawnDelay = 5000;
 
@@ -28,6 +29,7 @@ public sealed class MapControllerComponent : Component
 		const float MaxPlayerZ = 360f; const float MinPlayerZ = 35f;
 		if ( _player.WorldPosition.z > MaxPlayerZ || _player.WorldPosition.z < MinPlayerZ )
 		{
+			GameRestart();
 			Log.Warning( "The player has left the map area." );
 		}
 	}
@@ -78,4 +80,9 @@ public sealed class MapControllerComponent : Component
 		return _cactusModels[_random.Next( 0, _cactusModels.Length )];
 	}
 
+	void GameRestart()
+	{
+		_player.GetComponent<PlayerMovement>().CurrentState = PlayerMovement.PlayerStates.Dead;
+		_player.Enabled = false;
+	}
 }
