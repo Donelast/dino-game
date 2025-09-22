@@ -3,14 +3,14 @@ namespace Sandbox;
 
 public sealed class PlayerCharacter : Component
 {
-	[Property, Range( 185, 650 ), Group( "Movement" )] float _playerSpeed = 185f;
-	[Property, Group( "Sound" )] readonly SoundEvent _hitHurtSound = null;
-	[Property, Group( "Sound" )] readonly SoundEvent _jumpSound = null;
+	[Property, Range( 285, 650 ), Group( "Movement" )] float _playerSpeed = 185f;
+	[Property, Group( "Sound" )] public readonly SoundEvent _hitHurtSound = null;
+	[Property, Group( "Sound" )] public readonly SoundEvent _jumpSound = null;
 	[Property, Group( "Movement" )] public bool IsGrounded = true;
 	[Property, Group( "Movement" )] public GameStatus GameStatusComponent;
 
 	private Rigidbody _rigidbody;
-	private SoundPointComponent _soundPoint;
+	public SoundPointComponent _soundPoint;
 
 	const float JumpPower = 29000;
 

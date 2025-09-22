@@ -8,6 +8,7 @@ public sealed class ObstacleGenerator : Component
 	[Property] public GameObject Player { get; private set; }
 	[Property, Range( 950f, 1300 ), Group( "Difficulty" )] float _spawnDistance = 950f;
 	[Property, Range( 5000, 2500 ), Group( "Difficulty" )] int _spawnDelay = 5000;
+	[Property] public bool StopGeneration = false;
 
 	GameStatus _gameStatusComponent;
 	readonly Model[] _cactusModels = { Model.Load( "models/vmdl/cactus.vmdl" ), Model.Load( "models/vmdl/cactus2.vmdl" ) };
@@ -32,10 +33,7 @@ public sealed class ObstacleGenerator : Component
 
 	protected override void OnFixedUpdate()
 	{
-		if ( _generateObstacle && _gameStatusComponent.CurrentState == GameStatus.PlayerStates.Playing )
-		{
-			ObstacleGeneration();
-		}
+		ObstacleGeneration();
 		CheckingPlayerPosition();
 	}
 
@@ -50,10 +48,13 @@ public sealed class ObstacleGenerator : Component
 
 	async void ObstacleGeneration()
 	{
-		_generateObstacle = false;
-		await Task.Delay( _random.Next( Convert.ToInt32( _spawnDelay * 0.5 ), _spawnDelay ) );
-		SpawnObject( RandomCactusPrefab() );
-		_generateObstacle = true;
+		if( StopGeneration == false && _generateObstacle && _gameStatusComponent.CurrentState == GameStatus.PlayerStates.Playing )
+		{
+			_generateObstacle = false;
+			await Task.Delay( _random.Next( Convert.ToInt32( _spawnDelay * 0.5 ), _spawnDelay ) );
+			SpawnObject( RandomCactusPrefab() );
+			_generateObstacle = true;
+		}
 	}	
 
 	void SpawnObject( string prefabName )
