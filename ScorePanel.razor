@@ -1,0 +1,50 @@
+@using Sandbox
+@using Sandbox.UI
+@inherits PanelComponent
+@namespace Sandbox
+
+<root>
+    <div class="score-container">
+        <div class="score-text" style="color:@GetScoreColor()">
+            Score: @_gameStatusComponent?.CurrentScore
+        </div>
+        <div class="max-score-text" style="color:@GetHighScoreColor()">
+            High Score: @MaxScore
+        </div>
+    </div>
+</root>
+
+@code {
+#nullable enable
+
+    [Property] public GameStatus? _gameStatusComponent = null;
+    [Property] public ulong MaxScore { get; set; } = 0;
+
+    async protected override void OnEnabled()
+    {
+        await Sandbox.Services.Stats.LocalPlayer.Refresh();
+        var stat = Sandbox.Services.Stats.LocalPlayer.Get("globalscore");
+        MaxScore = (ulong)stat.Value;
+    }
+
+    protected override int BuildHash() =>
+        System.HashCode.Combine(
+            _gameStatusComponent?.CurrentScore ?? 0,
+            (long)MaxScore,
+            _gameStatusComponent?.CurrentTime ?? 0f
+        );
+
+    string GetScoreColor()
+    {
+        float t = _gameStatusComponent?.CurrentTime ?? 0f;
+        int v = (int)(t * 255);
+        return $"rgb({v},{v},{v})";
+    }
+
+    string GetHighScoreColor()
+    {
+        float t = _gameStatusComponent?.CurrentTime ?? 0f;
+        int v = (int)(85 + t * (187 - 85));
+        return $"rgb({v},{v},{v})";
+    }
+}

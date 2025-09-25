@@ -1,4 +1,5 @@
-using System;
+Ôªøusing System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Sandbox;
 
@@ -8,14 +9,13 @@ public sealed class GameStatus : Component
 {
 	[Property] public PlayerStates CurrentState = PlayerStates.Playing;
 
-	[Property, Group( "Difficulty" )] public ulong Score { get; private set; } = 0;
+	[Property] public ulong CurrentScore { get; private set; } = 0;
 
-	// 0 = ‰ÂÌ¸, 1 = ÌÓ˜¸ (ÔÎ‡‚Ì˚È Ô‡‡ÏÂÚ ‚ ÔÓÒÚ-ÔÓˆ)
+	// 0 = –¥–µ–Ω—å, 1 = –Ω–æ—á—å (–ø–ª–∞–≤–Ω—ã–π –ø–∞—Ä–∞–º–µ—Ç—Ä –≤ –ø–æ—Å—Ç-–ø—Ä–æ—Ü)
 	[Property] public float CurrentTime = 0;
 
-	// »ÌÚÂ‚‡Î Ó˜ÍÓ‚ ÏÂÊ‰Û ÌÓ˜‡ÏË: 250 -> ÌÓ˜Ë Ì‡ 250, 500, 750, ...
-	[Property, Group( "Difficulty" )]
-	public float PointsToNight = 250f;
+	// –ò–Ω—Ç–µ—Ä–≤–∞–ª –æ—á–∫–æ–≤ –º–µ–∂–¥—É –Ω–æ—á–∞–º–∏: 250 -> –Ω–æ—á–∏ –Ω–∞ 250, 500, 750, ...
+	[Property, Group( "Difficulty" )] public float PointsToNight = 250f;
 
 	[Property, Group( "Day/Night" )]
 	public float TransitionSpeed = 0.5f;
@@ -25,6 +25,8 @@ public sealed class GameStatus : Component
 
 	[Property, Group( "Difficulty" )] public int ScoreDelay = 1500;
 
+	[Property, Group( "Day/Night" )] List<GameObject> StarsGroup = null;
+
 	ObstacleGenerator _obstacleGeneratorComponent;
 	PlayerCharacter _playerCharacterComponent;
 	ColorGrading _colorGrading;
@@ -32,7 +34,7 @@ public sealed class GameStatus : Component
 	bool canAddScore = true;
 	float _nightHoldTimer = 0f;
 
-	// ¬ÌÛÚÂÌÌÂÂ: ÒÎÂ‰Û˛˘ËÈ ÔÓÓ„ ‰Îˇ ÌÓ˜Ë
+	// –í–Ω—É—Ç—Ä–µ–Ω–Ω–µ–µ: —Å–ª–µ–¥—É—é—â–∏–π –ø–æ—Ä–æ–≥ –¥–ª—è –Ω–æ—á–∏
 	ulong _nextNightAt = 0;
 	ulong _lastInterval = 0;
 
@@ -63,10 +65,14 @@ public sealed class GameStatus : Component
 			return;
 		}
 
-		Scene.RenderAttributes.Set( "InvertAmount", CurrentTime );
+		// –ù–∞—á–∏–Ω–∞–µ–º —Å –¥–Ω—è
+		SetDay();
 
-		// »ÌËˆË‡ÎËÁËÛÂÏ ÔÂ‚˚È ÔÓÓ„
+		// –ò–Ω–∏—Ü–∏–∞–ª–∏–∑–∏—Ä—É–µ–º –ø–µ—Ä–≤—ã–π –ø–æ—Ä–æ–≥
 		RecomputeNextNightThreshold( force: true );
+
+		var PlayerScore = Sandbox.Services.Stats.LocalPlayer.Get( "globalscore" );
+
 	}
 
 	protected override void OnFixedUpdate()
@@ -74,11 +80,11 @@ public sealed class GameStatus : Component
 		if ( CurrentState != PlayerStates.Playing )
 			return;
 
-		// ≈ÒÎË ‚ ËÌÒÔÂÍÚÓÂ ËÁÏÂÌËÎË ËÌÚÂ‚‡Î ó ÔÂÂÒ˜ËÚ‡Ú¸ ·ÎËÊ‡È¯ËÈ ÒÎÂ‰Û˛˘ËÈ ÔÓÓ„
+		// –ï—Å–ª–∏ –≤ –∏–Ω—Å–ø–µ–∫—Ç–æ—Ä–µ –∏–∑–º–µ–Ω–∏–ª–∏ –∏–Ω—Ç–µ—Ä–≤–∞–ª ‚Äî –ø–µ—Ä–µ—Å—á–∏—Ç–∞—Ç—å –±–ª–∏–∂–∞–π—à–∏–π —Å–ª–µ–¥—É—é—â–∏–π –ø–æ—Ä–æ–≥
 		RecomputeNextNightThreshold();
 
-		// “Ë„„Â ÌÓ˜Ë ÔÓ ‰ÓÒÚËÊÂÌË˛ ÔÓÓ„‡ (Ë ÚÓÎ¸ÍÓ ÂÒÎË ÒÂÈ˜‡Ò ÌÂ Û‰ÂÊË‚‡ÂÏ ÌÓ˜¸)
-		if ( _nextNightAt > 0 && Score >= _nextNightAt && _nightHoldTimer <= 0f )
+		// –¢—Ä–∏–≥–≥–µ—Ä –Ω–æ—á–∏ –ø–æ –¥–æ—Å—Ç–∏–∂–µ–Ω–∏—é –ø–æ—Ä–æ–≥–∞ (–∏ —Ç–æ–ª—å–∫–æ –µ—Å–ª–∏ —Å–µ–π—á–∞—Å –Ω–µ —É–¥–µ—Ä–∂–∏–≤–∞–µ–º –Ω–æ—á—å)
+		if ( _nextNightAt > 0 && CurrentScore >= _nextNightAt && _nightHoldTimer <= 0f )
 		{
 			SetNight();
 			ulong interval = (ulong)MathF.Round( MathF.Max( 1f, PointsToNight ) );
@@ -86,27 +92,48 @@ public sealed class GameStatus : Component
 			_nextNightAt += interval;
 		}
 
-		// “ËÍ‡ÂÏ Û‰ÂÊ‡ÌËÂ ÌÓ˜Ë
+		// –¢–∏–∫–∞–µ–º —É–¥–µ—Ä–∂–∞–Ω–∏–µ –Ω–æ—á–∏
 		if ( _nightHoldTimer > 0f )
 		{
 			_nightHoldTimer -= Time.Delta;
 			if ( _nightHoldTimer < 0f ) _nightHoldTimer = 0f;
 		}
 
-		// ÷ÂÎ¸: 1 ÔË ÌÓ˜Ë, ËÌ‡˜Â 0
+		// –¶–µ–ª—å: 1 –ø—Ä–∏ –Ω–æ—á–∏, –∏–Ω–∞—á–µ 0
 		float target = _nightHoldTimer > 0f ? 1f : 0f;
 
-		// œÎ‡‚Ì˚È ÔÂÂıÓ‰ ·ÂÁ ÏÂˆ‡ÌËÈ
+		// –ü–ª–∞–≤–Ω—ã–π –ø–µ—Ä–µ—Ö–æ–¥
 		CurrentTime = MoveTowards( CurrentTime, target, TransitionSpeed * Time.Delta );
 		Scene.RenderAttributes.Set( "InvertAmount", CurrentTime );
 
-		// ŒÒÚ‡Ì‡‚ÎË‚‡ÂÏ/Á‡ÔÛÒÍ‡ÂÏ „ÂÌÂ‡ˆË˛ ÔÂÔˇ‰ÒÚ‚ËÈ ‚ ÌÓ˜Ë/‰Ì∏Ï
+		// –û—Å—Ç–∞–Ω–∞–≤–ª–∏–≤–∞–µ–º/–∑–∞–ø—É—Å–∫–∞–µ–º –≥–µ–Ω–µ—Ä–∞—Ü–∏—é –ø—Ä–µ–ø—è—Ç—Å—Ç–≤–∏–π –≤ –Ω–æ—á–∏/–¥–Ω—ë–º
 		if ( _obstacleGeneratorComponent != null )
 		{
 			_obstacleGeneratorComponent.StopGeneration = (_nightHoldTimer > 0f);
 		}
 
+		// –ü–µ—Ä–µ–∫–ª—é—á–∞–µ–º –∑–≤—ë–∑–¥—ã
+		if ( StarsGroup != null )
+		{
+			bool starsActive = (_nightHoldTimer > 0f);
+			foreach ( var star in StarsGroup )
+			{
+				if ( star != null )
+					star.Enabled = starsActive;
+			}
+		}
+
 		AddScore();
+	}
+
+	protected override void OnUpdate()
+	{
+		if ( CurrentState == PlayerStates.Dead )
+		{
+			DisplayMainMenu();
+			RestartGame();
+			SetDay(); // —Å–º–µ—Ä—Ç—å ‚Üí –≤–µ—Ä–Ω—É—Ç—å –¥–µ–Ω—å
+		}
 	}
 
 	public void KillPlayer()
@@ -123,7 +150,7 @@ public sealed class GameStatus : Component
 		{
 			canAddScore = false;
 			await Task.Delay( ScoreDelay );
-			Score++;
+			CurrentScore++;
 			canAddScore = true;
 		}
 	}
@@ -131,11 +158,13 @@ public sealed class GameStatus : Component
 	void SetDay()
 	{
 		_nightHoldTimer = 0f;
+		CurrentTime = 0f;
+		Scene.RenderAttributes.Set( "InvertAmount", CurrentTime );
 	}
 
 	void SetNight()
 	{
-		_nightHoldTimer = MathF.Max( _nightHoldTimer, NightHoldSeconds );
+		_nightHoldTimer = NightHoldSeconds; // –≤—Å–µ–≥–¥–∞ —Å–±—Ä–æ—Å
 	}
 
 	void RecomputeNextNightThreshold( bool force = false )
@@ -146,7 +175,7 @@ public sealed class GameStatus : Component
 		if ( force || interval != _lastInterval )
 		{
 			_lastInterval = interval;
-			ulong k = (Score / interval) + 1;
+			ulong k = (CurrentScore / interval) + 1;
 			_nextNightAt = k * interval;
 		}
 	}
@@ -157,4 +186,56 @@ public sealed class GameStatus : Component
 			return target;
 		return current + MathF.Sign( target - current ) * maxDelta;
 	}
+
+	void DisplayMainMenu()
+	{
+		CurrentState = GameStatus.PlayerStates.MainMenu;
+		_playerCharacterComponent._scorePanel.Enabled = false;
+		_playerCharacterComponent._mainMenu.Enabled = true;
+	}
+
+	public void HideMainMenu()
+	{
+		CurrentState = GameStatus.PlayerStates.Playing;
+		_playerCharacterComponent._scorePanel.Enabled = true;
+		_playerCharacterComponent._mainMenu.Enabled = false;
+	}
+
+	void RestartGame()
+	{ 
+		_playerCharacterComponent._rigidbody.Locking = new PhysicsLock { X = true, Y = true, Z = true, Pitch = true, Roll = true, Yaw = true };
+		_obstacleGeneratorComponent.Player.WorldPosition = _playerCharacterComponent.StartPosition.WorldPosition;
+
+		foreach ( GameObject obj in _obstacleGeneratorComponent.SpawnedObjects )
+		{
+			obj.Destroy();
+		}
+		_obstacleGeneratorComponent.SpawnedObjects.Clear();
+	}
+
+	public void StartGame()
+	{
+		// –≤—Å–µ–≥–¥–∞ —Å—Ç–∞—Ä—Ç—É–µ–º –¥–Ω—ë–º
+		SetDay();
+
+		// —Å–±—Ä–æ—Å —Å—á—ë—Ç–∞ –∏ –Ω–æ—á–Ω–æ–≥–æ —Ç–∞–π–º–µ—Ä–∞
+		CurrentScore = 0;
+		_nightHoldTimer = 0f;
+
+		// –ø–µ—Ä–µ—Å—á–∏—Ç–∞—Ç—å –Ω–æ—á–Ω–æ–π –ø–æ—Ä–æ–≥ –∑–∞–Ω–æ–≤–æ
+		RecomputeNextNightThreshold( force: true );
+
+		CurrentState = PlayerStates.Playing;
+
+		_playerCharacterComponent._rigidbody.Locking = new PhysicsLock
+		{
+			X = true,
+			Y = false,
+			Z = false,
+			Pitch = true,
+			Roll = true,
+			Yaw = true
+		};
+	}
+
 }

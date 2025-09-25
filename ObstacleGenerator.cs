@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 namespace Sandbox;
 
 public sealed class ObstacleGenerator : Component
@@ -6,6 +7,7 @@ public sealed class ObstacleGenerator : Component
 	readonly static Random _random = new Random();
 
 	[Property] public GameObject Player { get; private set; }
+	/*[Property]*/ public List<GameObject> SpawnedObjects = new List<GameObject>();
 	[Property, Range( 950f, 1300 ), Group( "Difficulty" )] float _spawnDistance = 950f;
 	[Property, Range( 5000, 2500 ), Group( "Difficulty" )] int _spawnDelay = 5000;
 	[Property] public bool StopGeneration = false;
@@ -71,6 +73,7 @@ public sealed class ObstacleGenerator : Component
 				child.GetComponent<ModelRenderer>().Model = RandomCactusModel();
 			}
 		}
+		SpawnedObjects.Add( obj );
 	}
 
 	string RandomCactusPrefab()

@@ -1,0 +1,22 @@
+﻿.score-container {
+    position: absolute;
+    top: 59px;
+    right: 49px;
+    transform: rotate(10deg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.score-text {
+    font-family: Pixelizer;
+    font-size: 48px;
+    font-weight: bold;
+}
+
+.max-score-text {
+    font-family: Pixelizer;
+    font-size: 30px;
+    font-weight: normal;
+    margin-top: 6px;
+}
