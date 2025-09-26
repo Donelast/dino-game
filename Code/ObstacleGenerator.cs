@@ -8,10 +8,24 @@ public sealed class ObstacleGenerator : Component
 
 	[Property] public GameObject Player { get; private set; }
 	/*[Property]*/ public List<GameObject> SpawnedObjects = new List<GameObject>();
-	[Property, Range( 950f, 1300 ), Group( "Difficulty" )] float _spawnDistance = 950f;
-	[Property, Range( 5000, 2500 ), Group( "Difficulty" )] int _spawnDelay = 5000;
 	[Property] public bool StopGeneration = false;
 
+	[Property, Range( 950f, 1300f ), Group( "Difficulty" )] private float _spawnDistance;
+	public float SpawnDistance
+	{
+		get => _spawnDistance;
+		set => _spawnDistance = Math.Clamp( value, 950f, 1300f );
+	}
+
+	[Property, Range( 2500, 5000 ), Group( "Difficulty" )] private int _spawnDelay;
+	public int SpawnDelay
+	{
+		get => _spawnDelay;
+		set => _spawnDelay = Math.Clamp( value, 2500, 5000 );
+	}
+
+	public float DefaultSpawnDistance;
+	public int DefaultSpawnDelay;
 	GameStatus _gameStatusComponent;
 	readonly Model[] _cactusModels = { Model.Load( "models/vmdl/cactus.vmdl" ), Model.Load( "models/vmdl/cactus2.vmdl" ) };
 	readonly Vector3 _defaultObjectPosition = new Vector3( -32641.779f, 0, 115.137f );
@@ -20,6 +34,8 @@ public sealed class ObstacleGenerator : Component
 	protected override void OnStart()
 	{
 		_gameStatusComponent = GetComponent<GameStatus>();
+		DefaultSpawnDistance = SpawnDistance;
+		DefaultSpawnDelay = SpawnDelay;
 
 		if ( _gameStatusComponent == null || !_gameStatusComponent.IsValid )
 		{
@@ -53,15 +69,18 @@ public sealed class ObstacleGenerator : Component
 		if( StopGeneration == false && _generateObstacle && _gameStatusComponent.CurrentState == GameStatus.PlayerStates.Playing )
 		{
 			_generateObstacle = false;
-			await Task.Delay( _random.Next( Convert.ToInt32( _spawnDelay * 0.5 ), _spawnDelay ) );
-			SpawnObject( RandomCactusPrefab() );
+			await Task.Delay( _random.Next( Convert.ToInt32( SpawnDelay * 0.5 ), SpawnDelay ) );
+			if(StopGeneration == false)
+			{
+				SpawnObject( RandomCactusPrefab() );
+			}
 			_generateObstacle = true;
 		}
 	}	
 
 	void SpawnObject( string prefabName )
 	{
-		GameObject obj = GameObject.Clone( prefabName, new Transform( new Vector3( _defaultObjectPosition.x, Player.WorldPosition.y - _spawnDistance, _defaultObjectPosition.z ), new Rotation(), scale: 1 ) );
+		GameObject obj = GameObject.Clone( prefabName, new Transform( new Vector3( _defaultObjectPosition.x, Player.WorldPosition.y - SpawnDistance, _defaultObjectPosition.z ), new Rotation(), scale: 1 ) );
 		if ( obj.Tags.Has( "cactus" ) )
 		{
 			obj.GetComponent<ModelRenderer>().Model = RandomCactusModel();
@@ -97,5 +116,6 @@ public sealed class ObstacleGenerator : Component
 	{
 		return _cactusModels[_random.Next( 0, _cactusModels.Length )];
 	}
+
 
 }

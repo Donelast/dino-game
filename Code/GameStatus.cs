@@ -7,26 +7,25 @@ namespace Sandbox;
 
 public sealed class GameStatus : Component
 {
+	Random _random = new Random();
 	[Property] public PlayerStates CurrentState = PlayerStates.Playing;
-
 	[Property] public ulong CurrentScore { get; private set; } = 0;
-
-	// 0 = день, 1 = ночь (плавный параметр в пост-проц)
+	// 0 = день, 1 = ночь
 	[Property] public float CurrentTime = 0;
-
 	// Интервал очков между ночами: 250 -> ночи на 250, 500, 750, ...
-	[Property, Group( "Difficulty" )] public float PointsToNight = 250f;
-
-	[Property, Group( "Day/Night" )]
-	public float TransitionSpeed = 0.5f;
-
-	[Property, Group( "Day/Night" )]
-	public float NightHoldSeconds = 25.0f;
-
-	[Property, Group( "Difficulty" )] public int ScoreDelay = 1500;
-
+	[Property, Group( "Difficulty" )] float PointsToNight = 250f;
+	[Property, Group( "Day/Night" )] float TransitionSpeed = 0.5f;
+	[Property, Group( "Day/Night" )] float NightHoldSeconds = 25.0f;
 	[Property, Group( "Day/Night" )] List<GameObject> StarsGroup = null;
+	[Property, Group( "Difficulty" ), Range( 900f, 80f )] private float _scoreDelay;
 
+	public float ScoreDelay
+	{
+		get => _scoreDelay;
+		set => _scoreDelay = Math.Clamp( value, 80f, 900f );
+	}
+
+	float _defaultScoreDelay;
 	ObstacleGenerator _obstacleGeneratorComponent;
 	PlayerCharacter _playerCharacterComponent;
 	ColorGrading _colorGrading;
@@ -50,6 +49,7 @@ public sealed class GameStatus : Component
 		_obstacleGeneratorComponent = GetComponent<ObstacleGenerator>();
 		_playerCharacterComponent = _obstacleGeneratorComponent?.Player?.GetComponent<PlayerCharacter>();
 		_colorGrading = _obstacleGeneratorComponent?.Player?.GetComponent<ColorGrading>();
+		_defaultScoreDelay = ScoreDelay;
 
 		if ( _obstacleGeneratorComponent == null || !_obstacleGeneratorComponent.IsValid )
 		{
@@ -123,6 +123,7 @@ public sealed class GameStatus : Component
 			}
 		}
 
+		IncreaseDifficulty();
 		AddScore();
 	}
 
@@ -149,7 +150,7 @@ public sealed class GameStatus : Component
 		if ( canAddScore && CurrentState == PlayerStates.Playing )
 		{
 			canAddScore = false;
-			await Task.Delay( ScoreDelay );
+			await Task.Delay( (int)ScoreDelay );
 			CurrentScore++;
 			canAddScore = true;
 		}
@@ -202,7 +203,7 @@ public sealed class GameStatus : Component
 	}
 
 	void RestartGame()
-	{ 
+	{
 		_playerCharacterComponent._rigidbody.Locking = new PhysicsLock { X = true, Y = true, Z = true, Pitch = true, Roll = true, Yaw = true };
 		_obstacleGeneratorComponent.Player.WorldPosition = _playerCharacterComponent.StartPosition.WorldPosition;
 
@@ -210,7 +211,12 @@ public sealed class GameStatus : Component
 		{
 			obj.Destroy();
 		}
+
 		_obstacleGeneratorComponent.SpawnedObjects.Clear();
+		ScoreDelay = _defaultScoreDelay;
+		_playerCharacterComponent.PlayerSpeed = _playerCharacterComponent.DefaultPlayerSpeed;
+		_obstacleGeneratorComponent.SpawnDelay = _obstacleGeneratorComponent.DefaultSpawnDelay;
+		_obstacleGeneratorComponent.SpawnDistance = _obstacleGeneratorComponent.DefaultSpawnDistance;
 	}
 
 	public void StartGame()
@@ -236,6 +242,14 @@ public sealed class GameStatus : Component
 			Roll = true,
 			Yaw = true
 		};
+	}
+
+	public void IncreaseDifficulty()
+	{
+		ScoreDelay -= 0.4f;
+		_playerCharacterComponent.PlayerSpeed += 0.15f;
+		_obstacleGeneratorComponent.SpawnDelay -= 1;
+		_obstacleGeneratorComponent.SpawnDistance -= 1;
 	}
 
 }

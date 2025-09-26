@@ -38,8 +38,18 @@
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		gap: 6px;
+		gap: 0.24em;
 		font-size: 25px;
 		color: #444;
+		min-height: 8em;
+		justify-content: flex-start;
+	}
+
+	.leaderboard-warning {
+		margin-top: 9.3em;
+		font-size: 28px;
+		color: #666;
+		text-align: center;
+		max-width: 80%;
 	}
 }
