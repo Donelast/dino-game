@@ -7,21 +7,21 @@ public sealed class ObstacleGenerator : Component
 	readonly static Random _random = new Random();
 
 	[Property] public GameObject Player { get; private set; }
-	/*[Property]*/ public List<GameObject> SpawnedObjects = new List<GameObject>();
+	public List<GameObject> SpawnedObjects = new List<GameObject>();
 	[Property] public bool StopGeneration = false;
 
-	[Property, Range( 950f, 1300f ), Group( "Difficulty" )] private float _spawnDistance;
+	[Property, Range( 950f, 2600f ), Group( "Difficulty" )] private float _spawnDistance;
 	public float SpawnDistance
 	{
 		get => _spawnDistance;
-		set => _spawnDistance = Math.Clamp( value, 950f, 1300f );
+		set => _spawnDistance = Math.Clamp( value, 950f, 2600f );
 	}
 
-	[Property, Range( 2500, 5000 ), Group( "Difficulty" )] private int _spawnDelay;
+	[Property, Range( 2500, 8000 ), Group( "Difficulty" )] private int _spawnDelay;
 	public int SpawnDelay
 	{
 		get => _spawnDelay;
-		set => _spawnDelay = Math.Clamp( value, 2500, 5000 );
+		set => _spawnDelay = Math.Clamp( value, 2500, 8000 );
 	}
 
 	public float DefaultSpawnDistance;

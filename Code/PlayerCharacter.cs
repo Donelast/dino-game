@@ -10,12 +10,12 @@ public sealed class PlayerCharacter : Component
 	[Property, Group( "Sound" )] public readonly SoundEvent _jumpSound = null;
 	[Property, Group( "Movement" )] public bool IsGrounded = true;
 	[Property, Group( "Movement" )] readonly public GameStatus GameStatusComponent;
-	[Property, Range( 285, 650 ), Group( "Movement" )] private float _playerSpeed;
+	[Property, Range( 200, 650 ), Group( "Movement" )] private float _playerSpeed;
 
 	public float PlayerSpeed
 	{
 		get => _playerSpeed;
-		set => _playerSpeed = Math.Clamp( value, 285, 650 );
+		set => _playerSpeed = Math.Clamp( value, 200, 650 );
 	}
 
 	public Rigidbody _rigidbody;

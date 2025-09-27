@@ -1,7 +1,7 @@
 ﻿.score-container {
     position: absolute;
-    top: 59px;
-    right: 49px;
+    top: 64px;
+    right: 64px;
     transform: rotate(10deg);
     display: flex;
     flex-direction: column;
@@ -10,13 +10,13 @@
 
 .score-text {
     font-family: Pixelizer;
-    font-size: 48px;
+    font-size: 34px;
     font-weight: bold;
 }
 
 .max-score-text {
     font-family: Pixelizer;
-    font-size: 30px;
+    font-size: 26px;
     font-weight: normal;
     margin-top: 6px;
 }

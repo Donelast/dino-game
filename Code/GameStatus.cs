@@ -17,12 +17,13 @@ public sealed class GameStatus : Component
 	[Property, Group( "Day/Night" )] float TransitionSpeed = 0.5f;
 	[Property, Group( "Day/Night" )] float NightHoldSeconds = 25.0f;
 	[Property, Group( "Day/Night" )] List<GameObject> StarsGroup = null;
-	[Property, Group( "Difficulty" ), Range( 900f, 80f )] private float _scoreDelay;
+	[Property, Group( "Day/Night" )] List<GameObject> ConstellationsGroup = null;
+	[Property, Group( "Difficulty" ), Range( 1400f, 80f )] private float _scoreDelay;
 
 	public float ScoreDelay
 	{
 		get => _scoreDelay;
-		set => _scoreDelay = Math.Clamp( value, 80f, 900f );
+		set => _scoreDelay = Math.Clamp( value, 80f, 1400f );
 	}
 
 	float _defaultScoreDelay;
@@ -36,6 +37,9 @@ public sealed class GameStatus : Component
 	// Внутреннее: следующий порог для ночи
 	ulong _nextNightAt = 0;
 	ulong _lastInterval = 0;
+
+	// текущая выбранная созвездие
+	GameObject _activeConstellation = null;
 
 	public enum PlayerStates
 	{
@@ -72,7 +76,6 @@ public sealed class GameStatus : Component
 		RecomputeNextNightThreshold( force: true );
 
 		var PlayerScore = Sandbox.Services.Stats.LocalPlayer.Get( "globalscore" );
-
 	}
 
 	protected override void OnFixedUpdate()
@@ -80,10 +83,8 @@ public sealed class GameStatus : Component
 		if ( CurrentState != PlayerStates.Playing )
 			return;
 
-		// Если в инспекторе изменили интервал — пересчитать ближайший следующий порог
 		RecomputeNextNightThreshold();
 
-		// Триггер ночи по достижению порога (и только если сейчас не удерживаем ночь)
 		if ( _nextNightAt > 0 && CurrentScore >= _nextNightAt && _nightHoldTimer <= 0f )
 		{
 			SetNight();
@@ -92,27 +93,22 @@ public sealed class GameStatus : Component
 			_nextNightAt += interval;
 		}
 
-		// Тикаем удержание ночи
 		if ( _nightHoldTimer > 0f )
 		{
 			_nightHoldTimer -= Time.Delta;
 			if ( _nightHoldTimer < 0f ) _nightHoldTimer = 0f;
 		}
 
-		// Цель: 1 при ночи, иначе 0
 		float target = _nightHoldTimer > 0f ? 1f : 0f;
-
-		// Плавный переход
 		CurrentTime = MoveTowards( CurrentTime, target, TransitionSpeed * Time.Delta );
 		Scene.RenderAttributes.Set( "InvertAmount", CurrentTime );
 
-		// Останавливаем/запускаем генерацию препятствий в ночи/днём
 		if ( _obstacleGeneratorComponent != null )
 		{
 			_obstacleGeneratorComponent.StopGeneration = (_nightHoldTimer > 0f);
 		}
 
-		// Переключаем звёзды
+		// Звёзды
 		if ( StarsGroup != null )
 		{
 			bool starsActive = (_nightHoldTimer > 0f);
@@ -123,8 +119,42 @@ public sealed class GameStatus : Component
 			}
 		}
 
+		// Созвездия
+		if ( ConstellationsGroup != null )
+		{
+			bool constellationActive = (_nightHoldTimer > 0f);
+
+			if ( constellationActive )
+			{
+				// если ещё не выбрали — выбираем случайное
+				if ( _activeConstellation == null && ConstellationsGroup.Count > 0 )
+				{
+					int idx = _random.Next( ConstellationsGroup.Count );
+					_activeConstellation = ConstellationsGroup[idx];
+				}
+
+				// включаем только выбранное
+				foreach ( var obj in ConstellationsGroup )
+				{
+					if ( obj != null )
+						obj.Enabled = (obj == _activeConstellation);
+				}
+			}
+			else
+			{
+				// днём выключаем все и сбрасываем выбор
+				foreach ( var obj in ConstellationsGroup )
+				{
+					if ( obj != null )
+						obj.Enabled = false;
+				}
+				_activeConstellation = null;
+			}
+		}
+
 		IncreaseDifficulty();
 		AddScore();
+		GiveAchievements();
 	}
 
 	protected override void OnUpdate()
@@ -133,7 +163,7 @@ public sealed class GameStatus : Component
 		{
 			DisplayMainMenu();
 			RestartGame();
-			SetDay(); // смерть → вернуть день
+			SetDay();
 		}
 	}
 
@@ -165,7 +195,7 @@ public sealed class GameStatus : Component
 
 	void SetNight()
 	{
-		_nightHoldTimer = NightHoldSeconds; // всегда сброс
+		_nightHoldTimer = NightHoldSeconds;
 	}
 
 	void RecomputeNextNightThreshold( bool force = false )
@@ -221,14 +251,9 @@ public sealed class GameStatus : Component
 
 	public void StartGame()
 	{
-		// всегда стартуем днём
 		SetDay();
-
-		// сброс счёта и ночного таймера
 		CurrentScore = 0;
 		_nightHoldTimer = 0f;
-
-		// пересчитать ночной порог заново
 		RecomputeNextNightThreshold( force: true );
 
 		CurrentState = PlayerStates.Playing;
@@ -244,12 +269,30 @@ public sealed class GameStatus : Component
 		};
 	}
 
-	public void IncreaseDifficulty()
+	void IncreaseDifficulty()
 	{
-		ScoreDelay -= 0.4f;
-		_playerCharacterComponent.PlayerSpeed += 0.15f;
-		_obstacleGeneratorComponent.SpawnDelay -= 1;
-		_obstacleGeneratorComponent.SpawnDistance -= 1;
+		if(CurrentTime == 0)
+		{
+			ScoreDelay -= 0.6f;
+			_playerCharacterComponent.PlayerSpeed += 0.1f;
+			_obstacleGeneratorComponent.SpawnDelay -= 1;
+			_obstacleGeneratorComponent.SpawnDistance -= 0.045f;
+		}
 	}
 
+	void GiveAchievements()
+	{
+		if(CurrentScore >= 500)
+		{
+			Sandbox.Services.Achievements.Unlock( "500-points" );
+		}
+		if ( CurrentScore >= 1500 )
+		{
+			Sandbox.Services.Achievements.Unlock( "1500-points" );
+		}
+		if(CurrentTime == 1)
+		{
+			Sandbox.Services.Achievements.Unlock( "thefirstnight" );
+		}
+	}
 }
