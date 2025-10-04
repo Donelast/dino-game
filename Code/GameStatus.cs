@@ -276,7 +276,7 @@ public sealed class GameStatus : Component
 			ScoreDelay -= 0.6f;
 			_playerCharacterComponent.PlayerSpeed += 0.1f;
 			_obstacleGeneratorComponent.SpawnDelay -= 1;
-			_obstacleGeneratorComponent.SpawnDistance -= 0.045f;
+			_obstacleGeneratorComponent.SpawnDistance -= 0.40f;
 		}
 	}
 

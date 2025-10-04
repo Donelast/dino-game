@@ -17,11 +17,11 @@ public sealed class ObstacleGenerator : Component
 		set => _spawnDistance = Math.Clamp( value, 950f, 2600f );
 	}
 
-	[Property, Range( 2500, 8000 ), Group( "Difficulty" )] private int _spawnDelay;
+	[Property, Range( 3800, 9000 ), Group( "Difficulty" )] private int _spawnDelay;
 	public int SpawnDelay
 	{
 		get => _spawnDelay;
-		set => _spawnDelay = Math.Clamp( value, 2500, 8000 );
+		set => _spawnDelay = Math.Clamp( value, 3800, 9000 );
 	}
 
 	public float DefaultSpawnDistance;
