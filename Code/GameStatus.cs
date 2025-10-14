@@ -34,11 +34,9 @@ public sealed class GameStatus : Component
 	bool canAddScore = true;
 	float _nightHoldTimer = 0f;
 
-	// Внутреннее: следующий порог для ночи
 	ulong _nextNightAt = 0;
 	ulong _lastInterval = 0;
 
-	// текущая выбранная созвездие
 	GameObject _activeConstellation = null;
 
 	public enum PlayerStates
@@ -69,10 +67,8 @@ public sealed class GameStatus : Component
 			return;
 		}
 
-		// Начинаем с дня
 		SetDay();
 
-		// Инициализируем первый порог
 		RecomputeNextNightThreshold( force: true );
 
 		var PlayerScore = Sandbox.Services.Stats.LocalPlayer.Get( "globalscore" );
@@ -108,7 +104,6 @@ public sealed class GameStatus : Component
 			_obstacleGeneratorComponent.StopGeneration = (_nightHoldTimer > 0f);
 		}
 
-		// Звёзды
 		if ( StarsGroup != null )
 		{
 			bool starsActive = (_nightHoldTimer > 0f);
@@ -119,21 +114,18 @@ public sealed class GameStatus : Component
 			}
 		}
 
-		// Созвездия
 		if ( ConstellationsGroup != null )
 		{
 			bool constellationActive = (_nightHoldTimer > 0f);
 
 			if ( constellationActive )
 			{
-				// если ещё не выбрали — выбираем случайное
 				if ( _activeConstellation == null && ConstellationsGroup.Count > 0 )
 				{
 					int idx = _random.Next( ConstellationsGroup.Count );
 					_activeConstellation = ConstellationsGroup[idx];
 				}
 
-				// включаем только выбранное
 				foreach ( var obj in ConstellationsGroup )
 				{
 					if ( obj != null )
@@ -142,7 +134,6 @@ public sealed class GameStatus : Component
 			}
 			else
 			{
-				// днём выключаем все и сбрасываем выбор
 				foreach ( var obj in ConstellationsGroup )
 				{
 					if ( obj != null )
@@ -296,3 +287,4 @@ public sealed class GameStatus : Component
 		}
 	}
 }
+
