@@ -12,7 +12,6 @@ public sealed class GameStatus : Component
 	[Property] public ulong CurrentScore { get; private set; } = 0;
 	// 0 = день, 1 = ночь
 	[Property] public float CurrentTime = 0;
-	// Интервал очков между ночами: 250 -> ночи на 250, 500, 750, ...
 	[Property, Group( "Difficulty" )] float PointsToNight = 250f;
 	[Property, Group( "Day/Night" )] float TransitionSpeed = 0.5f;
 	[Property, Group( "Day/Night" )] float NightHoldSeconds = 25.0f;
@@ -287,4 +286,5 @@ public sealed class GameStatus : Component
 		}
 	}
 }
+
 
