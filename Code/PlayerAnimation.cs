@@ -55,7 +55,6 @@ public sealed class PlayerAnimation : Component
 			this.Enabled = false;
 		}
 
-		// Óñòàíîâèì ñòàðòîâûé êàäð åñëè âîçìîæíî
 		if ( _runningModels != null && _runningModels.Length > 0 && _modelRender != null )
 		{
 			_frameIndex = ((_frameIndex % _runningModels.Length) + _runningModels.Length) % _runningModels.Length;
@@ -86,7 +85,6 @@ public sealed class PlayerAnimation : Component
 
 					await Task.Delay( _frameDelay );
 
-					// Ñäâèãàåì èíäåêñ Â ÊÎÍÖÅ êàäðà — ïðîãðåññ ñîõðàíèòñÿ äàæå ïðè âûõîäå
 					_frameIndex = (frame + 1) % _runningModels.Length;
 				}
 
@@ -95,7 +93,6 @@ public sealed class PlayerAnimation : Component
 		}
 		else
 		{
-			// Ïðîâåðÿåì ñòàòóñ èãðû è ïðèçåìëåíèå
 			if ( currentAnimation == PlayerAnimations.Running &&
 				 _canPlayAnimation &&
 				 _gameStatusComponent.CurrentState == GameStatus.PlayerStates.Playing &&
@@ -109,11 +106,10 @@ public sealed class PlayerAnimation : Component
 					  currentAnimation == PlayerAnimations.Running;
 					  step++ )
 				{
-					// Åñëè âî âðåìÿ ïðîèãðûâàíèÿ èãðîê ïîäïðûãíóë — «çàìîðîçêà» íà òåêóùåì êàäðå
 					if ( !_playerCharacterComponent.IsGrounded )
 					{
 						_canPlayAnimation = true;
-						return; // _frameIndex óæå óêàçûâàåò íà òåêóùèé êàäð äëÿ ïðîäîëæåíèÿ
+						return; 
 					}
 
 					int frame = _frameIndex % _runningModels.Length;
@@ -121,7 +117,6 @@ public sealed class PlayerAnimation : Component
 
 					await Task.Delay( _frameDelay );
 
-					// Ïåðåõîäèì ê ñëåäóþùåìó êàäðó è ñîõðàíÿåì ïðîãðåññ
 					_frameIndex = (frame + 1) % _runningModels.Length;
 				}
 
@@ -130,4 +125,5 @@ public sealed class PlayerAnimation : Component
 		}
 	}
 }
+
 
