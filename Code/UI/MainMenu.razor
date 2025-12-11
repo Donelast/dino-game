@@ -1,0 +1,107 @@
+﻿@using Sandbox;
+@using Sandbox.UI;
+@inherits PanelComponent
+@namespace Sandbox
+
+<root>
+    <div class="MainMenu">
+        <div class="content">
+            <div class="start-button">@StartButtonText</div>
+
+            <div class="top5-title">@TopTitleText</div>
+            <div class="top5-list">
+                <div>@Top1</div>
+                <div>@Top2</div>
+                <div>@Top3</div>
+                <div>@Top4</div>
+                <div>@Top5</div>
+            </div>
+
+            <div class="leaderboard-warning">
+                Note: Your score may take 4–6 minutes to update, depending on server load.
+            </div>
+        </div>
+    </div>
+</root>
+
+@code { 
+    string StartButtonText = "Press jump key to start";
+    const string TopTitleText = "Top 5 Players";
+
+    public string Top1 { get; set; } = "Loading...";
+    public string Top2 { get; set; } = "";
+    public string Top3 { get; set; } = "";
+    public string Top4 { get; set; } = "";
+    public string Top5 { get; set; } = "";
+
+    [Property] ScorePanel _scorePanel = null;
+    GameStatus _gameStatusComponent = null;
+
+    protected override void OnStart()
+    {
+        _gameStatusComponent = _scorePanel._gameStatusComponent;
+    }
+
+    protected override void OnDisabled()
+    {
+        Top1 = "Loading...";
+        Top2  = "";
+        Top3  = "";
+        Top4  = "";
+        Top5  = "";
+    }
+
+    async protected override void OnEnabled()
+    {
+        await Task.Delay(1);
+
+        var board = Sandbox.Services.Leaderboards.GetFromStat("gmk.dino", "globalscore");
+        board.MaxEntries = 5;
+        await board.Refresh();
+
+        var entries = board.Entries;
+        if (entries.Length >= 5)
+        {
+            Top1 = $"{entries[0].Rank}. {entries[0].DisplayName} - {entries[0].Value}";
+            Top2 = $"{entries[1].Rank}. {entries[1].DisplayName} - {entries[1].Value}";
+            Top3 = $"{entries[2].Rank}. {entries[2].DisplayName} - {entries[2].Value}";
+            Top4 = $"{entries[3].Rank}. {entries[3].DisplayName} - {entries[3].Value}";
+            Top5 = $"{entries[4].Rank}. {entries[4].DisplayName} - {entries[4].Value}";
+        }
+
+        // обновляем загрузку статистики для локального игрока
+        await Sandbox.Services.Stats.LocalPlayer.Refresh();
+
+        var playerStat = Sandbox.Services.Stats.LocalPlayer.Get("globalscore");
+        ulong current = _gameStatusComponent.CurrentScore;
+        ulong saved = (ulong)playerStat.Value;
+
+        if (current > saved)
+        {
+            Sandbox.Services.Stats.Increment("globalscore", (long)(current - saved));
+
+            await board.Refresh();
+            var e2 = board.Entries;
+            if (e2.Length >= 5)
+            { 
+                Top1 = $"{e2[0].Rank}. {e2[0].DisplayName} - {e2[0].Value}";
+                Top2 = $"{e2[1].Rank}. {e2[1].DisplayName} - {e2[1].Value}";
+                Top3 = $"{e2[2].Rank}. {e2[2].DisplayName} - {e2[2].Value}";
+                Top4 = $"{e2[3].Rank}. {e2[3].DisplayName} - {e2[3].Value}";
+                Top5 = $"{e2[4].Rank}. {e2[4].DisplayName} - {e2[4].Value}";
+            }
+        }
+    }
+
+    protected override void OnUpdate()
+    {
+        if (Input.Pressed("jump") && _gameStatusComponent != null)
+        {
+            _gameStatusComponent.HideMainMenu();
+            _gameStatusComponent.StartGame();
+        }
+    }
+
+    protected override int BuildHash() =>
+        System.HashCode.Combine(Top1, Top2, Top3, Top4, Top5);
+}

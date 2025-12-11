@@ -1,0 +1,148 @@
+{
+  "IsSubgraph": false,
+  "Path": "shader/invertcolor shader.shdrgrph",
+  "Model": null,
+  "Title": null,
+  "Description": "",
+  "Category": null,
+  "Icon": null,
+  "AddToNodeLibrary": false,
+  "BlendMode": "Opaque",
+  "ShadingModel": "Unlit",
+  "Domain": "Surface",
+  "PreviewSettings": {
+    "RenderBackfaces": false,
+    "EnableShadows": true,
+    "ShowGround": false,
+    "ShowSkybox": true,
+    "BackgroundColor": "0,0,0,1",
+    "Tint": "1,1,1,1"
+  },
+  "Version": 1,
+  "nodes": [
+    {
+      "_class": "Result",
+      "DefaultOpacity": 1,
+      "DefaultRoughness": 1,
+      "DefaultMetalness": 0,
+      "DefaultAmbientOcclusion": 0,
+      "Identifier": "0",
+      "Position": "420,-180",
+      "HandleOffsets": {},
+      "Albedo": {
+        "Identifier": "1",
+        "Output": "Result"
+      }
+    },
+    {
+      "_class": "Lerp",
+      "DefaultA": 0,
+      "DefaultB": 1,
+      "Fraction": 0.5,
+      "Identifier": "1",
+      "Position": "120,-180",
+      "HandleOffsets": {},
+      "A": {
+        "Identifier": "4",
+        "Output": "XYZ"
+      },
+      "B": {
+        "Identifier": "3",
+        "Output": "Out"
+      },
+      "C": {
+        "Identifier": "2",
+        "Output": "Result"
+      }
+    },
+    {
+      "_class": "Float",
+      "Min": 0,
+      "Max": 1,
+      "Value": 0,
+      "Name": "InvertAmount",
+      "IsAttribute": true,
+      "UI": {
+        "Type": "Default",
+        "Step": 0,
+        "Priority": 0,
+        "PrimaryGroup": {
+          "Name": null,
+          "Priority": 0
+        },
+        "SecondaryGroup": {
+          "Name": null,
+          "Priority": 0
+        }
+      },
+      "Identifier": "2",
+      "Position": "-132,12",
+      "HandleOffsets": {}
+    },
+    {
+      "_class": "OneMinus",
+      "Identifier": "3",
+      "Position": "-84,-108",
+      "HandleOffsets": {},
+      "In": {
+        "Identifier": "4",
+        "Output": "XYZ"
+      }
+    },
+    {
+      "_class": "CombineVector",
+      "DefaultX": 0,
+      "DefaultY": 0,
+      "DefaultZ": 0,
+      "DefaultW": 0,
+      "Identifier": "4",
+      "Position": "-348,-192",
+      "HandleOffsets": {},
+      "X": {
+        "Identifier": "5",
+        "Output": "R"
+      },
+      "Y": {
+        "Identifier": "5",
+        "Output": "G"
+      },
+      "Z": {
+        "Identifier": "5",
+        "Output": "B"
+      }
+    },
+    {
+      "_class": "TextureSampler",
+      "Image": "materials/palette texture.png",
+      "Sampler": {
+        "Filter": "Aniso",
+        "AddressU": "Wrap",
+        "AddressV": "Wrap"
+      },
+      "UI": {
+        "Name": null,
+        "IsAttribute": false,
+        "Default": "1,1,1,1",
+        "Extension": "Color",
+        "CustomExtension": null,
+        "ShowExtension": true,
+        "Processor": "None",
+        "ColorSpace": "Srgb",
+        "ImageFormat": "DXT5",
+        "SrgbRead": true,
+        "Priority": 0,
+        "PrimaryGroup": {
+          "Name": null,
+          "Priority": 0
+        },
+        "SecondaryGroup": {
+          "Name": null,
+          "Priority": 0
+        }
+      },
+      "Identifier": "5",
+      "Position": "-636,-216",
+      "HandleOffsets": {}
+    }
+  ]
+}

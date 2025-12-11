@@ -1,0 +1,130 @@
+{
+  "RootObject": {
+    "__guid": "5e18cb41-0d4f-410b-a3b3-57dccd83f602",
+    "__version": 1,
+    "Flags": 0,
+    "Name": "two_cactus",
+    "Position": "0,0,0",
+    "Rotation": "-0.00000002980232,0,1,0",
+    "Scale": "1,1,1",
+    "Tags": "two_cactus",
+    "Enabled": true,
+    "NetworkMode": 2,
+    "NetworkInterpolation": true,
+    "NetworkOrphaned": 0,
+    "OwnerTransfer": 1,
+    "Components": [],
+    "Children": [
+      {
+        "__guid": "d3c827a7-e91a-4fb6-b40e-66d853ac59c8",
+        "__version": 1,
+        "__Prefab": "prefabs/cactus.prefab",
+        "__PrefabInstancePatch": {
+          "AddedObjects": [],
+          "RemovedObjects": [],
+          "PropertyOverrides": [
+            {
+              "Target": {
+                "Type": "GameObject",
+                "IdValue": "7101f88f-31dd-4645-a700-81b3397ed64b"
+              },
+              "Property": "Name",
+              "Value": "cactus-1"
+            },
+            {
+              "Target": {
+                "Type": "GameObject",
+                "IdValue": "7101f88f-31dd-4645-a700-81b3397ed64b"
+              },
+              "Property": "Position",
+              "Value": "0,-16.59375,0"
+            },
+            {
+              "Target": {
+                "Type": "GameObject",
+                "IdValue": "7101f88f-31dd-4645-a700-81b3397ed64b"
+              },
+              "Property": "Rotation",
+              "Value": "0,0.000000000000001776357,0,-1"
+            }
+          ],
+          "MovedObjects": []
+        },
+        "__PrefabIdToInstanceId": {
+          "7101f88f-31dd-4645-a700-81b3397ed64b": "d3c827a7-e91a-4fb6-b40e-66d853ac59c8",
+          "e7ef7a7f-8990-4150-890d-2104fd621e09": "cbb31b77-04ef-40d7-a610-40f21b61cb8d",
+          "79a3aba3-2a60-475f-a5eb-a26157534fca": "a7f77ae7-65d5-4e5f-b463-27f82ac20309",
+          "adbcb1bd-06c6-4938-a025-7c4d09b8b13d": "7fc0bd6e-e563-40ef-b817-95f63729fd7e"
+        }
+      },
+      {
+        "__guid": "cbec5cc8-f496-4104-a871-c053e05d86c8",
+        "__version": 1,
+        "__Prefab": "prefabs/cactus.prefab",
+        "__PrefabInstancePatch": {
+          "AddedObjects": [],
+          "RemovedObjects": [],
+          "PropertyOverrides": [
+            {
+              "Target": {
+                "Type": "GameObject",
+                "IdValue": "7101f88f-31dd-4645-a700-81b3397ed64b"
+              },
+              "Property": "Name",
+              "Value": "cactus-2"
+            },
+            {
+              "Target": {
+                "Type": "GameObject",
+                "IdValue": "7101f88f-31dd-4645-a700-81b3397ed64b"
+              },
+              "Property": "Position",
+              "Value": "0,17.70312,0"
+            },
+            {
+              "Target": {
+                "Type": "GameObject",
+                "IdValue": "7101f88f-31dd-4645-a700-81b3397ed64b"
+              },
+              "Property": "Rotation",
+              "Value": "0,0.000000000000001776357,0,-1"
+            }
+          ],
+          "MovedObjects": []
+        },
+        "__PrefabIdToInstanceId": {
+          "7101f88f-31dd-4645-a700-81b3397ed64b": "cbec5cc8-f496-4104-a871-c053e05d86c8",
+          "e7ef7a7f-8990-4150-890d-2104fd621e09": "88aec629-88d4-4957-8df2-0d53852e018b",
+          "79a3aba3-2a60-475f-a5eb-a26157534fca": "208e0260-27c6-4bf5-b7b4-b69b6c3acb41",
+          "adbcb1bd-06c6-4938-a025-7c4d09b8b13d": "9d3cf402-e386-4cc7-846e-9b6c09115262"
+        }
+      }
+    ],
+    "__properties": {
+      "NetworkInterpolation": true,
+      "TimeScale": 1,
+      "WantsSystemScene": true,
+      "Metadata": {},
+      "NavMesh": {
+        "Enabled": false,
+        "IncludeStaticBodies": true,
+        "IncludeKeyframedBodies": true,
+        "EditorAutoUpdate": true,
+        "AgentHeight": 64,
+        "AgentRadius": 16,
+        "AgentStepSize": 18,
+        "AgentMaxSlope": 40,
+        "ExcludedBodies": "",
+        "IncludedBodies": ""
+      }
+    },
+    "__variables": []
+  },
+  "ResourceVersion": 2,
+  "ShowInMenu": false,
+  "MenuPath": null,
+  "MenuIcon": null,
+  "DontBreakAsTemplate": false,
+  "__references": [],
+  "__version": 2
+}

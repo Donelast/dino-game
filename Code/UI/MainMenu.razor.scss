@@ -1,0 +1,55 @@
+﻿.MainMenu {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background-color: white;
+	justify-content: flex-start;
+	align-items: center;
+	flex-direction: column;
+	font-family: Pixelizer;
+	pointer-events: all;
+	z-index: 100;
+
+	.content {
+		margin-top: 40vh;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+	}
+
+	.start-button {
+		font-size: 50px;
+		color: black;
+		margin-bottom: 30px;
+		text-align: center;
+		image-rendering: pixelated;
+	}
+
+	.top5-title {
+		font-size: 25px;
+		color: #666;
+		margin-bottom: 8px;
+		text-align: center;
+	}
+
+	.top5-list {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.24em;
+		font-size: 25px;
+		color: #444;
+		min-height: 8em;
+		justify-content: flex-start;
+	}
+
+	.leaderboard-warning {
+		margin-top: 9.3em;
+		font-size: 28px;
+		color: #666;
+		text-align: center;
+		max-width: 80%;
+	}
+}

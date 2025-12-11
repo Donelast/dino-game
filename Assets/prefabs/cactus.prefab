@@ -1,0 +1,336 @@
+{
+  "RootObject": {
+    "__guid": "7101f88f-31dd-4645-a700-81b3397ed64b",
+    "__version": 1,
+    "Flags": 0,
+    "Name": "cactus",
+    "Position": "0,0,0",
+    "Rotation": "0.00000002980232,0,-1,0",
+    "Scale": "1,1,1",
+    "Tags": "cactus",
+    "Enabled": true,
+    "NetworkMode": 2,
+    "NetworkInterpolation": true,
+    "NetworkOrphaned": 0,
+    "OwnerTransfer": 1,
+    "Components": [
+      {
+        "__type": "Sandbox.ModelRenderer",
+        "__guid": "e7ef7a7f-8990-4150-890d-2104fd621e09",
+        "__enabled": true,
+        "BodyGroups": 18446744073709551615,
+        "CreateAttachments": false,
+        "LodOverride": null,
+        "MaterialGroup": null,
+        "MaterialOverride": null,
+        "Materials": null,
+        "Model": "models/vmdl/cactus.vmdl",
+        "OnComponentDestroy": null,
+        "OnComponentDisabled": null,
+        "OnComponentEnabled": null,
+        "OnComponentFixedUpdate": null,
+        "OnComponentStart": null,
+        "OnComponentUpdate": null,
+        "RenderOptions": {
+          "GameLayer": true,
+          "OverlayLayer": false,
+          "BloomLayer": false,
+          "AfterUILayer": false
+        },
+        "RenderType": "Off",
+        "Tint": "1,1,1,1"
+      },
+      {
+        "__type": "Sandbox.BoxCollider",
+        "__guid": "79a3aba3-2a60-475f-a5eb-a26157534fca",
+        "__enabled": true,
+        "Center": "0.04486465,-1.21183,0.1418076",
+        "Elasticity": null,
+        "Friction": null,
+        "IsTrigger": false,
+        "OnComponentDestroy": null,
+        "OnComponentDisabled": null,
+        "OnComponentEnabled": null,
+        "OnComponentFixedUpdate": null,
+        "OnComponentStart": null,
+        "OnComponentUpdate": null,
+        "OnObjectTriggerEnter": null,
+        "OnObjectTriggerExit": null,
+        "OnTriggerEnter": null,
+        "OnTriggerExit": null,
+        "RollingResistance": null,
+        "Scale": "71.42403,13.3657,113.9357",
+        "Static": false,
+        "Surface": null,
+        "SurfaceVelocity": "0,0,0"
+      },
+      {
+        "__type": "Sandbox.BoxCollider",
+        "__guid": "adbcb1bd-06c6-4938-a025-7c4d09b8b13d",
+        "__enabled": true,
+        "Center": "0.04486465,-2.892412,0.1418076",
+        "Elasticity": null,
+        "Friction": null,
+        "IsTrigger": true,
+        "OnComponentDestroy": null,
+        "OnComponentDisabled": null,
+        "OnComponentEnabled": null,
+        "OnComponentFixedUpdate": null,
+        "OnComponentStart": null,
+        "OnComponentUpdate": null,
+        "OnObjectTriggerEnter": null,
+        "OnObjectTriggerExit": null,
+        "OnTriggerEnter": {
+          "__version": 9,
+          "__guid": "66d717ee-33db-424b-bacc-6705c91d4bd0",
+          "__changeId": 366,
+          "UserData": {
+            "Title": "On Collider Enter",
+            "ReferencedComponentTypes": [
+              "Sandbox.GameStatus"
+            ]
+          },
+          "Variables": [],
+          "Nodes": [
+            {
+              "Id": 0,
+              "Type": "input",
+              "UserData": {
+                "Position": "-336,60"
+              }
+            },
+            {
+              "Id": 67,
+              "Type": "if",
+              "UserData": {
+                "Position": "876,0"
+              }
+            },
+            {
+              "Id": 68,
+              "Type": "property",
+              "Properties": {
+                "_name": "GameObject",
+                "_type": "Sandbox.Component"
+              },
+              "UserData": {
+                "Position": "-180,84"
+              }
+            },
+            {
+              "Id": 69,
+              "Type": "property",
+              "Properties": {
+                "_name": "Tags",
+                "_type": "Sandbox.GameObject"
+              },
+              "UserData": {
+                "Position": "252,84"
+              }
+            },
+            {
+              "Id": 104,
+              "Type": "call",
+              "Properties": {
+                "_isStatic": false,
+                "_name": "Has",
+                "_type": "Sandbox.GameTags"
+              },
+              "UserData": {
+                "Position": "456,60"
+              }
+            },
+            {
+              "Id": 111,
+              "Type": "op.andalso",
+              "UserData": {
+                "Position": "780,24"
+              }
+            },
+            {
+              "Id": 122,
+              "Type": "op.equal",
+              "UserData": {
+                "Position": "684,276"
+              }
+            },
+            {
+              "Id": 191,
+              "Type": "scene.ref",
+              "UserData": {
+                "Position": "72,276"
+              }
+            },
+            {
+              "Id": 192,
+              "Type": "scene.get",
+              "Properties": {
+                "T": "Sandbox.GameStatus"
+              },
+              "UserData": {
+                "Position": "144,276"
+              }
+            },
+            {
+              "Id": 193,
+              "Type": "property",
+              "Properties": {
+                "_name": "CurrentState",
+                "_type": "Sandbox.GameStatus"
+              },
+              "UserData": {
+                "Position": "420,276"
+              }
+            },
+            {
+              "Id": 204,
+              "Type": "kill.player",
+              "UserData": {
+                "Position": "1188,-0"
+              }
+            }
+          ],
+          "Links": [
+            {
+              "SrcId": 0,
+              "SrcName": "_signal",
+              "DstId": 67,
+              "DstName": "_signal"
+            },
+            {
+              "SrcId": 111,
+              "SrcName": "_result",
+              "DstId": 67,
+              "DstName": "condition"
+            },
+            {
+              "SrcId": 0,
+              "SrcName": "obj",
+              "DstId": 68,
+              "DstName": "_target"
+            },
+            {
+              "SrcId": 68,
+              "SrcName": "_result",
+              "DstId": 69,
+              "DstName": "_target"
+            },
+            {
+              "SrcId": 69,
+              "SrcName": "_result",
+              "DstId": 104,
+              "DstName": "_target"
+            },
+            {
+              "Id": 200,
+              "Value": false,
+              "DstId": 104,
+              "DstName": "includeAncestors"
+            },
+            {
+              "Id": 201,
+              "Value": "dino",
+              "DstId": 104,
+              "DstName": "tag"
+            },
+            {
+              "SrcId": 104,
+              "SrcName": "_result",
+              "DstId": 111,
+              "DstName": "a"
+            },
+            {
+              "SrcId": 122,
+              "SrcName": "_result",
+              "DstId": 111,
+              "DstName": "b"
+            },
+            {
+              "SrcId": 193,
+              "SrcName": "_result",
+              "DstId": 122,
+              "DstName": "a"
+            },
+            {
+              "Id": 202,
+              "Value": {
+                "$type": "Simple",
+                "Type": {
+                  "$type": "Nested",
+                  "DeclaringType": "Sandbox.GameStatus",
+                  "Name": "PlayerStates"
+                },
+                "Value": "Playing"
+              },
+              "DstId": 122,
+              "DstName": "b"
+            },
+            {
+              "SrcId": 191,
+              "SrcName": "_result",
+              "DstId": 192,
+              "DstName": "_this"
+            },
+            {
+              "SrcId": 192,
+              "SrcName": "_result",
+              "DstId": 193,
+              "DstName": "_target"
+            },
+            {
+              "SrcId": 67,
+              "SrcName": "true",
+              "DstId": 204,
+              "DstName": "_signal"
+            },
+            {
+              "SrcId": 192,
+              "SrcName": "_result",
+              "DstId": 204,
+              "DstName": "gameStatus"
+            }
+          ],
+          "Defaults": {
+            "$191.gameobject": {
+              "_type": "gameobject",
+              "go": "dc3ab161-8e7a-4227-85e9-51abda68ff1e"
+            }
+          }
+        },
+        "OnTriggerExit": null,
+        "RollingResistance": null,
+        "Scale": "71.42403,19.01564,113.9357",
+        "Static": false,
+        "Surface": null,
+        "SurfaceVelocity": "0,0,0"
+      }
+    ],
+    "Children": [],
+    "__properties": {
+      "NetworkInterpolation": true,
+      "TimeScale": 1,
+      "WantsSystemScene": true,
+      "Metadata": {},
+      "NavMesh": {
+        "Enabled": false,
+        "IncludeStaticBodies": true,
+        "IncludeKeyframedBodies": true,
+        "EditorAutoUpdate": true,
+        "AgentHeight": 64,
+        "AgentRadius": 16,
+        "AgentStepSize": 18,
+        "AgentMaxSlope": 40,
+        "ExcludedBodies": "",
+        "IncludedBodies": ""
+      }
+    },
+    "__variables": []
+  },
+  "ResourceVersion": 2,
+  "ShowInMenu": false,
+  "MenuPath": null,
+  "MenuIcon": null,
+  "DontBreakAsTemplate": false,
+  "__references": [],
+  "__version": 2
+}
