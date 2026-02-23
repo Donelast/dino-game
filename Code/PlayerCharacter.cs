@@ -3,6 +3,8 @@ namespace Sandbox;
 
 public sealed class PlayerCharacter : Component
 {
+	readonly Random _random = new Random();
+
 	[Property] public readonly ScorePanel _scorePanel = null;
 	[Property] public readonly MainMenu _mainMenu = null;
 	[Property] public readonly GameObject StartPosition = null;
@@ -71,6 +73,26 @@ public sealed class PlayerCharacter : Component
 		if ( IsGrounded && Input.Down( "Jump" ) && GameStatusComponent.CurrentState == GameStatus.PlayerStates.Playing && !_waitForJumpKeyUp )
 		{
 			IsGrounded = false;
+			
+			// --- НОВАЯ ЛОГИКА ЗВУКА ---
+			
+			// 1. Базовый рандом (от 0.9 до 1.05) - чтобы звук был живым
+			float baseRandom = 0.9f + (_random.NextSingle() * 0.15f);
+
+			// 2. Бонус от скорости
+			// Считаем разницу: насколько мы быстрее, чем на старте?
+			float speedDifference = Math.Max(0, PlayerSpeed - DefaultPlayerSpeed);
+			
+			// Делим на 1200 (чем меньше делитель, тем сильнее растет питч)
+			// Если скорость выросла на +400, питч вырастет на +0.33
+			float speedBonus = speedDifference / 2100f;
+
+			// Складываем: Рандом + Скорость
+			float finalPitch = baseRandom + speedBonus;
+
+			// Ограничиваем максимум (1.35), чтобы уши не болели от писка
+			_soundPoint.Pitch = Math.Clamp(finalPitch, 0.8f, 1.35f);
+			
 			_soundPoint.StartSound();
 			_rigidbody.ApplyForce( new Vector3( 0, 0, JumpPower ) );
 		}

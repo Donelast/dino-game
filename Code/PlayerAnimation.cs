@@ -1,5 +1,5 @@
-using System.Threading.Tasks;
-using static Sandbox.PlayerCharacter;
+using System;
+using Sandbox;
 
 namespace Sandbox;
 
@@ -12,7 +12,6 @@ public sealed class PlayerAnimation : Component
 
 	PlayerCharacter _playerCharacterComponent;
 	ModelRenderer _modelRender;
-	bool _canPlayAnimation = true;
 
 	readonly Model[] _runningModels = {
 		Model.Load( "models/vmdl/dino/dino_1.vmdl" ),
@@ -25,8 +24,8 @@ public sealed class PlayerAnimation : Component
 		Model.Load( "models/vmdl/dino/dino_8.vmdl" )
 	};
 
-	// ? Новый счётчик текущего кадра (сохраняем прогресс между паузами/прыжками)
 	int _frameIndex = 0;
+	float _timeSinceLastFrame = 0f;
 
 	public enum PlayerAnimations
 	{
@@ -42,12 +41,12 @@ public sealed class PlayerAnimation : Component
 
 		if ( ignorePlayerStatus && (_modelRender == null || !_modelRender.IsValid) )
 		{
-			Log.Error( "The rendering model required to play the animation is missing. Therefore, the component responsible for animation will be disabled in this game object." );
+			Log.Error( "The rendering model required to play the animation is missing." );
 			this.Enabled = false;
 		}
 		if ( ignorePlayerStatus == false && (_playerCharacterComponent == null || !_playerCharacterComponent.IsValid) )
 		{
-			Log.Error( "Player Movement Component is missing or not enabled " );
+			Log.Error( "Player Movement Component is missing or not enabled" );
 			this.Enabled = false;
 		}
 		if ( _modelRender == null || !_modelRender.IsValid )
@@ -56,7 +55,6 @@ public sealed class PlayerAnimation : Component
 			this.Enabled = false;
 		}
 
-		// Установим стартовый кадр если возможно
 		if ( _runningModels != null && _runningModels.Length > 0 && _modelRender != null )
 		{
 			_frameIndex = ((_frameIndex % _runningModels.Length) + _runningModels.Length) % _runningModels.Length;
@@ -66,67 +64,53 @@ public sealed class PlayerAnimation : Component
 
 	protected override void OnUpdate()
 	{
-		PlayFrameAnimation( CurrentAnimation );
+		UpdateAnimation();
 	}
 
-	async void PlayFrameAnimation( PlayerAnimations currentAnimation )
+	void UpdateAnimation()
 	{
 		if ( _runningModels == null || _runningModels.Length == 0 || _modelRender == null || !_modelRender.IsValid )
 			return;
 
+		bool shouldPlay = false;
+
 		if ( ignorePlayerStatus )
 		{
-			if ( currentAnimation == PlayerAnimations.Running && _canPlayAnimation )
-			{
-				_canPlayAnimation = false;
-
-				for ( int step = 0; step < _runningModels.Length; step++ )
-				{
-					int frame = _frameIndex % _runningModels.Length;
-					_modelRender.Model = _runningModels[frame];
-
-					await Task.Delay( _frameDelay );
-
-					// Сдвигаем индекс В КОНЦЕ кадра — прогресс сохранится даже при выходе
-					_frameIndex = (frame + 1) % _runningModels.Length;
-				}
-
-				_canPlayAnimation = true;
-			}
+			shouldPlay = (CurrentAnimation == PlayerAnimations.Running);
 		}
 		else
 		{
-			// Проверяем статус игры и приземление
-			if ( currentAnimation == PlayerAnimations.Running &&
-				 _canPlayAnimation &&
-				 _gameStatusComponent.CurrentState == GameStatus.PlayerStates.Playing &&
-				 _playerCharacterComponent.IsGrounded )
+			if ( _gameStatusComponent.CurrentState == GameStatus.PlayerStates.Playing &&
+				 _playerCharacterComponent.IsGrounded &&
+				 CurrentAnimation == PlayerAnimations.Running )
 			{
-				_canPlayAnimation = false;
+				shouldPlay = true;
+			}
+		}
 
-				for ( int step = 0;
-					  step < _runningModels.Length &&
-					  _gameStatusComponent.CurrentState == GameStatus.PlayerStates.Playing &&
-					  currentAnimation == PlayerAnimations.Running;
-					  step++ )
-				{
-					// Если во время проигрывания игрок подпрыгнул — «заморозка» на текущем кадре
-					if ( !_playerCharacterComponent.IsGrounded )
-					{
-						_canPlayAnimation = true;
-						return; // _frameIndex уже указывает на текущий кадр для продолжения
-					}
+		if ( shouldPlay )
+		{
+			_timeSinceLastFrame += Time.Delta;
 
-					int frame = _frameIndex % _runningModels.Length;
-					_modelRender.Model = _runningModels[frame];
+			// Р Р°СЃС‡РµС‚ Р·Р°РґРµСЂР¶РєРё (СѓРјРµРЅСЊС€Р°РµРј, РµСЃР»Рё СЃРєРѕСЂРѕСЃС‚СЊ СЂР°СЃС‚РµС‚)
+			int currentDelayMs = _frameDelay;
+			if ( !ignorePlayerStatus && _playerCharacterComponent.PlayerSpeed > _playerCharacterComponent.DefaultPlayerSpeed )
+			{
+				float diff = _playerCharacterComponent.PlayerSpeed - _playerCharacterComponent.DefaultPlayerSpeed;
+				int reduceAmount = (int)(diff / 10f);
+				currentDelayMs -= reduceAmount;
+			}
 
-					await Task.Delay( _frameDelay );
+			if ( currentDelayMs < 10 ) currentDelayMs = 10;
+			
+			// РџРµСЂРµРІРѕРґРёРј РјРёР»Р»РёСЃРµРєСѓРЅРґС‹ РІ СЃРµРєСѓРЅРґС‹ РґР»СЏ СЃСЂР°РІРЅРµРЅРёСЏ СЃ Time.Delta
+			float delaySeconds = currentDelayMs / 1000.0f;
 
-					// Переходим к следующему кадру и сохраняем прогресс
-					_frameIndex = (frame + 1) % _runningModels.Length;
-				}
-
-				_canPlayAnimation = true;
+			if ( _timeSinceLastFrame >= delaySeconds )
+			{
+				_timeSinceLastFrame = 0f;
+				_frameIndex = (_frameIndex + 1) % _runningModels.Length;
+				_modelRender.Model = _runningModels[_frameIndex];
 			}
 		}
 	}

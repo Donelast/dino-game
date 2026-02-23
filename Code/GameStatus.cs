@@ -8,17 +8,41 @@ namespace Sandbox;
 public sealed class GameStatus : Component
 {
 	Random _random = new Random();
+	
+	public enum PlayerStates
+	{
+		Playing,
+		Dead,
+		MainMenu
+	}
+
+	public enum DifficultyLevel
+	{
+		Easy,
+		Medium,
+		Hard
+	}
+
 	[Property] public PlayerStates CurrentState = PlayerStates.Playing;
 	[Property] public ulong CurrentScore { get; private set; } = 0;
-	// 0 = день, 1 = ночь
 	[Property] public float CurrentTime = 0;
-	// Интервал очков между ночами: 250 -> ночи на 250, 500, 750, ...
 	[Property, Group( "Difficulty" )] float PointsToNight = 250f;
+	
+	[Property, Group( "Difficulty" )] public DifficultyLevel CurrentDifficulty { get; private set; }
+	[Group( "Difficulty" )] public float EasyDuration = 15f;
+	[Group( "Difficulty" )] public float MediumDuration = 15f;
+	[Group( "Difficulty" )] public float HardDuration = 7f;
+	[Property, Group( "Difficulty" )] public float SpeedDistanceMultiplier = 1.5f;
+
 	[Property, Group( "Day/Night" )] float TransitionSpeed = 0.5f;
 	[Property, Group( "Day/Night" )] float NightHoldSeconds = 25.0f;
 	[Property, Group( "Day/Night" )] List<GameObject> StarsGroup = null;
 	[Property, Group( "Day/Night" )] List<GameObject> ConstellationsGroup = null;
-	[Property, Group( "Difficulty" ), Range( 1400f, 80f )] private float _scoreDelay;
+	
+	// Ссылка на компонент Blur (перетащи с камеры)
+	[Property, Group("Effects")] public Blur CameraBlur { get; set; } 
+	
+	[Property, Group( "Difficulty" ), Range( 80f, 1400f )] private float _scoreDelay = 100f;
 
 	public float ScoreDelay
 	{
@@ -27,32 +51,26 @@ public sealed class GameStatus : Component
 	}
 
 	float _defaultScoreDelay;
+
 	ObstacleGenerator _obstacleGeneratorComponent;
 	PlayerCharacter _playerCharacterComponent;
 	ColorGrading _colorGrading;
 
 	bool canAddScore = true;
 	float _nightHoldTimer = 0f;
+	float _difficultyTimer = 0f;
 
-	// Внутреннее: следующий порог для ночи
 	ulong _nextNightAt = 0;
 	ulong _lastInterval = 0;
 
-	// текущая выбранная созвездие
 	GameObject _activeConstellation = null;
-
-	public enum PlayerStates
-	{
-		Playing,
-		Dead,
-		MainMenu
-	}
 
 	protected override void OnStart()
 	{
 		_obstacleGeneratorComponent = GetComponent<ObstacleGenerator>();
 		_playerCharacterComponent = _obstacleGeneratorComponent?.Player?.GetComponent<PlayerCharacter>();
 		_colorGrading = _obstacleGeneratorComponent?.Player?.GetComponent<ColorGrading>();
+		
 		_defaultScoreDelay = ScoreDelay;
 
 		if ( _obstacleGeneratorComponent == null || !_obstacleGeneratorComponent.IsValid )
@@ -69,10 +87,13 @@ public sealed class GameStatus : Component
 			return;
 		}
 
-		// Начинаем с дня
-		SetDay();
+		// При старте игры на всякий случай выключаем блюр
+		if ( CameraBlur != null )
+		{
+			CameraBlur.Enabled = false;
+		}
 
-		// Инициализируем первый порог
+		SetDay();
 		RecomputeNextNightThreshold( force: true );
 
 		var PlayerScore = Sandbox.Services.Stats.LocalPlayer.Get( "globalscore" );
@@ -108,7 +129,6 @@ public sealed class GameStatus : Component
 			_obstacleGeneratorComponent.StopGeneration = (_nightHoldTimer > 0f);
 		}
 
-		// Звёзды
 		if ( StarsGroup != null )
 		{
 			bool starsActive = (_nightHoldTimer > 0f);
@@ -119,21 +139,18 @@ public sealed class GameStatus : Component
 			}
 		}
 
-		// Созвездия
 		if ( ConstellationsGroup != null )
 		{
 			bool constellationActive = (_nightHoldTimer > 0f);
 
 			if ( constellationActive )
 			{
-				// если ещё не выбрали — выбираем случайное
 				if ( _activeConstellation == null && ConstellationsGroup.Count > 0 )
 				{
 					int idx = _random.Next( ConstellationsGroup.Count );
 					_activeConstellation = ConstellationsGroup[idx];
 				}
 
-				// включаем только выбранное
 				foreach ( var obj in ConstellationsGroup )
 				{
 					if ( obj != null )
@@ -142,7 +159,6 @@ public sealed class GameStatus : Component
 			}
 			else
 			{
-				// днём выключаем все и сбрасываем выбор
 				foreach ( var obj in ConstellationsGroup )
 				{
 					if ( obj != null )
@@ -153,26 +169,63 @@ public sealed class GameStatus : Component
 		}
 
 		IncreaseDifficulty();
+		UpdateDifficulty();
 		AddScore();
 		GiveAchievements();
 	}
 
 	protected override void OnUpdate()
 	{
-		if ( CurrentState == PlayerStates.Dead )
-		{
-			DisplayMainMenu();
-			RestartGame();
-			SetDay();
-		}
 	}
 
-	public void KillPlayer()
+	public async void KillPlayer()
 	{
+		// Если мы уже мертвы, не запускаем процесс второй раз
+		if (CurrentState == PlayerStates.Dead) return;
+
 		CurrentState = PlayerStates.Dead;
+		
+		// 1. Эффекты удара
+		Input.TriggerHaptics( 0.15f, 0.05f ); 
+		
+		// --- ЭФФЕКТ "УДАР" ---
+		if ( CameraBlur != null )
+		{
+			CameraBlur.Enabled = true;
+			// Ты просил уменьшить пик до 0.25
+			CameraBlur.Size = 0.25f; 
+		}
+
+		// --- ИСПРАВЛЕНИЕ ЗВУКА ---
+		// Сначала затыкаем звук прыжка, если он играет
+		_playerCharacterComponent._soundPoint.StopSound();
+		
+		// Сбрасываем Pitch в норму (1.0), чтобы звук смерти не пищал
+		_playerCharacterComponent._soundPoint.Pitch = 1.0f;
+		
+		// Ставим звук смерти и проигрываем
 		_playerCharacterComponent._soundPoint.SoundEvent = _playerCharacterComponent._hitHurtSound;
 		_playerCharacterComponent._soundPoint.StartSound();
-		_playerCharacterComponent._soundPoint.SoundEvent = _playerCharacterComponent._jumpSound;
+		
+		// ВАЖНО: Мы НЕ меняем звук обратно на JumpSound прямо здесь.
+		// Мы сделаем это в RestartGame, иначе движок может запутаться.
+
+		// Ждем первую фазу удара (0.1 сек)
+		await Task.Delay(100);
+
+		// --- ЗАТУХАНИЕ ---
+		if ( CameraBlur != null )
+		{
+			CameraBlur.Size = 0.15f; 
+		}
+		
+		// Ждем остаток времени (0.15 сек), чтобы игрок увидел результат
+		await Task.Delay(150);
+
+		// 3. Показываем меню и сбрасываем мир
+		DisplayMainMenu();
+		RestartGame();
+		SetDay();
 	}
 
 	async void AddScore()
@@ -196,6 +249,22 @@ public sealed class GameStatus : Component
 	void SetNight()
 	{
 		_nightHoldTimer = NightHoldSeconds;
+
+		for ( int i = _obstacleGeneratorComponent.SpawnedObjects.Count - 1; i >= 0; i-- )
+		{
+			GameObject obj = _obstacleGeneratorComponent.SpawnedObjects[i];
+
+			if ( obj != null && obj.IsValid )
+			{
+				float dist = Vector3.DistanceBetween( _playerCharacterComponent.WorldPosition, obj.WorldPosition );
+
+				if ( dist > 1200f )
+				{
+					obj.Destroy();
+					_obstacleGeneratorComponent.SpawnedObjects.RemoveAt( i );
+				}
+			}
+		}
 	}
 
 	void RecomputeNextNightThreshold( bool force = false )
@@ -230,6 +299,12 @@ public sealed class GameStatus : Component
 		CurrentState = GameStatus.PlayerStates.Playing;
 		_playerCharacterComponent._scorePanel.Enabled = true;
 		_playerCharacterComponent._mainMenu.Enabled = false;
+		
+		// Выключаем блюр при старте
+		if ( CameraBlur != null )
+		{
+			CameraBlur.Enabled = false; 
+		}
 	}
 
 	void RestartGame()
@@ -243,10 +318,19 @@ public sealed class GameStatus : Component
 		}
 
 		_obstacleGeneratorComponent.SpawnedObjects.Clear();
+		
 		ScoreDelay = _defaultScoreDelay;
 		_playerCharacterComponent.PlayerSpeed = _playerCharacterComponent.DefaultPlayerSpeed;
+		
 		_obstacleGeneratorComponent.SpawnDelay = _obstacleGeneratorComponent.DefaultSpawnDelay;
 		_obstacleGeneratorComponent.SpawnDistance = _obstacleGeneratorComponent.DefaultSpawnDistance;
+		
+		_difficultyTimer = 0f;
+		
+		// --- ВАЖНО: Возвращаем звук прыжка здесь ---
+		// Теперь, когда мы начинаем новую игру, мы готовы снова прыгать
+		_playerCharacterComponent._soundPoint.SoundEvent = _playerCharacterComponent._jumpSound;
+		_playerCharacterComponent._soundPoint.Pitch = 1.0f; // Сброс питча на всякий случай
 	}
 
 	public void StartGame()
@@ -275,8 +359,53 @@ public sealed class GameStatus : Component
 		{
 			ScoreDelay -= 0.6f;
 			_playerCharacterComponent.PlayerSpeed += 0.1f;
-			_obstacleGeneratorComponent.SpawnDelay -= 1;
-			_obstacleGeneratorComponent.SpawnDistance -= 0.40f;
+		}
+	}
+
+	void UpdateDifficulty()
+	{
+		_difficultyTimer -= Time.Delta;
+
+		if ( _difficultyTimer <= 0f )
+		{
+			int rand = _random.Next( 0, 3 );
+			
+			if ( rand == 0 ) CurrentDifficulty = DifficultyLevel.Easy;
+			else if ( rand == 1 ) CurrentDifficulty = DifficultyLevel.Medium;
+			else CurrentDifficulty = DifficultyLevel.Hard;
+
+			switch ( CurrentDifficulty )
+			{
+				case DifficultyLevel.Easy:
+					_difficultyTimer = EasyDuration;
+					break;
+				case DifficultyLevel.Medium:
+					_difficultyTimer = MediumDuration;
+					break;
+				case DifficultyLevel.Hard:
+					_difficultyTimer = HardDuration;
+					break;
+			}
+		}
+
+		float speedBonus = _playerCharacterComponent.PlayerSpeed * SpeedDistanceMultiplier;
+
+		switch ( CurrentDifficulty )
+		{
+			case DifficultyLevel.Easy:
+				_obstacleGeneratorComponent.SpawnDelay = 6000;
+				_obstacleGeneratorComponent.SpawnDistance = 1900f + speedBonus;
+				break;
+
+			case DifficultyLevel.Medium:
+				_obstacleGeneratorComponent.SpawnDelay = 3600;
+				_obstacleGeneratorComponent.SpawnDistance = 1820f + speedBonus;
+				break;
+
+			case DifficultyLevel.Hard:
+				_obstacleGeneratorComponent.SpawnDelay = 2430;
+				_obstacleGeneratorComponent.SpawnDistance = 1970f + speedBonus;
+				break;
 		}
 	}
 

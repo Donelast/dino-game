@@ -1,5 +1,5 @@
 {
-  "UI": true,
+  "UI": false,
   "Volume": "1",
   "Pitch": "1",
   "Decibels": 70,
@@ -44,8 +44,8 @@
     }
   ],
   "DefaultMixer": {
-    "Name": "game",
-    "Id": "4f650dad-d0c2-453d-9fe5-4c471b908d7e"
+    "Name": "unknown",
+    "Id": "00000000-0000-0000-0000-000000000000"
   },
   "__references": [],
   "__version": 1

@@ -33,7 +33,6 @@
     public string Top3 { get; set; } = "";
     public string Top4 { get; set; } = "";
     public string Top5 { get; set; } = "";
-
     [Property] ScorePanel _scorePanel = null;
     GameStatus _gameStatusComponent = null;
 
@@ -54,7 +53,6 @@
     async protected override void OnEnabled()
     {
         await Task.Delay(1);
-
         var board = Sandbox.Services.Leaderboards.GetFromStat("gmk.dino", "globalscore");
         board.MaxEntries = 5;
         await board.Refresh();
@@ -71,15 +69,12 @@
 
         // обновляем загрузку статистики для локального игрока
         await Sandbox.Services.Stats.LocalPlayer.Refresh();
-
         var playerStat = Sandbox.Services.Stats.LocalPlayer.Get("globalscore");
         ulong current = _gameStatusComponent.CurrentScore;
         ulong saved = (ulong)playerStat.Value;
-
         if (current > saved)
         {
             Sandbox.Services.Stats.Increment("globalscore", (long)(current - saved));
-
             await board.Refresh();
             var e2 = board.Entries;
             if (e2.Length >= 5)

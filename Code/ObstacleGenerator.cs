@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 namespace Sandbox;
 
 public sealed class ObstacleGenerator : Component
@@ -10,18 +11,20 @@ public sealed class ObstacleGenerator : Component
 	public List<GameObject> SpawnedObjects = new List<GameObject>();
 	[Property] public bool StopGeneration = false;
 
-	[Property, Range( 950f, 2600f ), Group( "Difficulty" )] private float _spawnDistance;
+	// Расширил диапазон, чтобы вместить новые значения сложности
+	[Property, Range( 500f, 10000f ), Group( "Difficulty" )] private float _spawnDistance;
 	public float SpawnDistance
 	{
 		get => _spawnDistance;
-		set => _spawnDistance = Math.Clamp( value, 950f, 2600f );
+		set => _spawnDistance = Math.Clamp( value, 500f, 10000f );
 	}
 
-	[Property, Range( 3800, 9000 ), Group( "Difficulty" )] private int _spawnDelay;
+	// Расширил диапазон для более быстрых спавнов (1500)
+	[Property, Range( 1000, 9000 ), Group( "Difficulty" )] private int _spawnDelay;
 	public int SpawnDelay
 	{
 		get => _spawnDelay;
-		set => _spawnDelay = Math.Clamp( value, 3800, 9000 );
+		set => _spawnDelay = Math.Clamp( value, 1000, 9000 );
 	}
 
 	public float DefaultSpawnDistance;
