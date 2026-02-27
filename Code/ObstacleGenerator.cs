@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
+using Sandbox; 
+
 namespace Sandbox;
 
 public sealed class ObstacleGenerator : Component
@@ -11,7 +12,6 @@ public sealed class ObstacleGenerator : Component
 	public List<GameObject> SpawnedObjects = new List<GameObject>();
 	[Property] public bool StopGeneration = false;
 
-	// Расширил диапазон, чтобы вместить новые значения сложности
 	[Property, Range( 500f, 10000f ), Group( "Difficulty" )] private float _spawnDistance;
 	public float SpawnDistance
 	{
@@ -19,7 +19,6 @@ public sealed class ObstacleGenerator : Component
 		set => _spawnDistance = Math.Clamp( value, 500f, 10000f );
 	}
 
-	// Расширил диапазон для более быстрых спавнов (1500)
 	[Property, Range( 1000, 9000 ), Group( "Difficulty" )] private int _spawnDelay;
 	public int SpawnDelay
 	{
@@ -30,13 +29,19 @@ public sealed class ObstacleGenerator : Component
 	public float DefaultSpawnDistance;
 	public int DefaultSpawnDelay;
 	GameStatus _gameStatusComponent;
+	PlayerCharacter _playerCharacterComponent;
+
 	readonly Model[] _cactusModels = { Model.Load( "models/vmdl/cactus.vmdl" ), Model.Load( "models/vmdl/cactus2.vmdl" ) };
 	readonly Vector3 _defaultObjectPosition = new Vector3( -32641.779f, 0, 115.137f );
-	bool _generateObstacle = true;
+	
+	float _timeSinceLastSpawn = 0f;
+	float _nextSpawnDelayTimer = 0f;
 
 	protected override void OnStart()
 	{
 		_gameStatusComponent = GetComponent<GameStatus>();
+		_playerCharacterComponent = Player?.GetComponent<PlayerCharacter>();
+		
 		DefaultSpawnDistance = SpawnDistance;
 		DefaultSpawnDelay = SpawnDelay;
 
@@ -50,6 +55,8 @@ public sealed class ObstacleGenerator : Component
 			Log.Error( "Player was not specified in the inspector" );
 			this.Enabled = false;
 		}
+		
+		_nextSpawnDelayTimer = 0.1f; 
 	}
 
 	protected override void OnFixedUpdate()
@@ -67,23 +74,47 @@ public sealed class ObstacleGenerator : Component
 		}
 	}
 
-	async void ObstacleGeneration()
+	void ObstacleGeneration()
 	{
-		if( StopGeneration == false && _generateObstacle && _gameStatusComponent.CurrentState == GameStatus.PlayerStates.Playing )
+		if ( StopGeneration == false && _gameStatusComponent.CurrentState == GameStatus.PlayerStates.Playing )
 		{
-			_generateObstacle = false;
-			await Task.Delay( _random.Next( Convert.ToInt32( SpawnDelay * 0.5 ), SpawnDelay ) );
-			if(StopGeneration == false)
+			_timeSinceLastSpawn += Time.Delta;
+			
+			if ( _timeSinceLastSpawn >= _nextSpawnDelayTimer )
 			{
-				SpawnObject( RandomCactusPrefab() );
+				SpawnRandomObstacle();
+				_timeSinceLastSpawn = 0f;
 			}
-			_generateObstacle = true;
 		}
 	}	
 
-	void SpawnObject( string prefabName )
+	void SpawnRandomObstacle()
 	{
-		GameObject obj = GameObject.Clone( prefabName, new Transform( new Vector3( _defaultObjectPosition.x, Player.WorldPosition.y - SpawnDistance, _defaultObjectPosition.z ), new Rotation(), scale: 1 ) );
+		float obstacleChance = _random.NextSingle();
+		string prefabName;
+		bool isPterodactyl = false;
+		
+		Vector3 spawnPos = new Vector3( _defaultObjectPosition.x, Player.WorldPosition.y - SpawnDistance, _defaultObjectPosition.z );
+
+		if ( obstacleChance < 0.09f && _gameStatusComponent.PterodactylsUnlocked )
+		{
+			prefabName = "prefabs/pterodactyl.prefab";
+			isPterodactyl = true;
+			
+			int heightType = _random.Next( 0, 2 );
+			if ( heightType == 0 ) spawnPos.z += 15f; 
+			else spawnPos.z += 65f; 
+		}
+		else
+		{
+			float cactusChance = _random.NextSingle();
+			if ( cactusChance >= 0.25f ) prefabName = "prefabs/cactus.prefab";
+			else if ( cactusChance > 0.15f ) prefabName = "prefabs/two_cactus.prefab";
+			else prefabName = "prefabs/three_cactus.prefab";
+		}
+
+		GameObject obj = GameObject.Clone( prefabName, new Transform( spawnPos, new Rotation(), scale: 1 ) );
+		
 		if ( obj.Tags.Has( "cactus" ) )
 		{
 			obj.GetComponent<ModelRenderer>().Model = RandomCactusModel();
@@ -95,23 +126,29 @@ public sealed class ObstacleGenerator : Component
 				child.GetComponent<ModelRenderer>().Model = RandomCactusModel();
 			}
 		}
+		
 		SpawnedObjects.Add( obj );
+
+		CalculateNextSpawnDelay( isPterodactyl );
 	}
 
-	string RandomCactusPrefab()
+	void CalculateNextSpawnDelay( bool isPterodactyl )
 	{
-		float cactusChance = _random.NextSingle();
-		if ( cactusChance >= 0.25f )
+		float playerSpeed = _playerCharacterComponent != null ? _playerCharacterComponent.PlayerSpeed : 400f;
+		float pteroSpeed = 250f; 
+		
+		float currentClosingSpeed = playerSpeed + (isPterodactyl ? pteroSpeed : 0f);
+		float maxPossibleClosingSpeed = playerSpeed + pteroSpeed;
+
+		float minGapDelay = (SpawnDelay * 0.4f) / 1000f; 
+		float maxGapDelay = (SpawnDelay * 0.8f) / 1000f; 
+		float safeGap = minGapDelay + _random.NextSingle() * (maxGapDelay - minGapDelay);
+
+		_nextSpawnDelayTimer = safeGap + (SpawnDistance / currentClosingSpeed) - (SpawnDistance / maxPossibleClosingSpeed);
+
+		if ( _nextSpawnDelayTimer < 0.2f ) 
 		{
-			return "prefabs/cactus.prefab";
-		}
-		else if ( cactusChance > 0.15f )
-		{
-			return "prefabs/two_cactus.prefab";
-		}
-		else
-		{
-			return "prefabs/three_cactus.prefab";
+			_nextSpawnDelayTimer = 0.2f;
 		}
 	}
 
@@ -119,6 +156,4 @@ public sealed class ObstacleGenerator : Component
 	{
 		return _cactusModels[_random.Next( 0, _cactusModels.Length )];
 	}
-
-
 }

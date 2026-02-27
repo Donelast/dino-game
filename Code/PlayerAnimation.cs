@@ -92,7 +92,6 @@ public sealed class PlayerAnimation : Component
 		{
 			_timeSinceLastFrame += Time.Delta;
 
-			// Расчет задержки (уменьшаем, если скорость растет)
 			int currentDelayMs = _frameDelay;
 			if ( !ignorePlayerStatus && _playerCharacterComponent.PlayerSpeed > _playerCharacterComponent.DefaultPlayerSpeed )
 			{
@@ -103,7 +102,6 @@ public sealed class PlayerAnimation : Component
 
 			if ( currentDelayMs < 10 ) currentDelayMs = 10;
 			
-			// Переводим миллисекунды в секунды для сравнения с Time.Delta
 			float delaySeconds = currentDelayMs / 1000.0f;
 
 			if ( _timeSinceLastFrame >= delaySeconds )

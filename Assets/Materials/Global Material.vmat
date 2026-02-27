@@ -2,8 +2,10 @@
 
 Layer0
 {
-	shader "shader/invertcolor shader.shader"
+	shader "shader/invertcolor_shader.shader"
 
-	g_flInvertAmount "0.000"
+	//---- Rendering ----
+	F_DO_NOT_CAST_SHADOWS 1
+
 	Texture_ps_0 "materials/palette texture.png"
 }

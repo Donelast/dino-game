@@ -1,5 +1,6 @@
 ﻿@using Sandbox;
 @using Sandbox.UI;
+@using System.Threading.Tasks;
 @inherits PanelComponent
 @namespace Sandbox
 
@@ -33,12 +34,16 @@
     public string Top3 { get; set; } = "";
     public string Top4 { get; set; } = "";
     public string Top5 { get; set; } = "";
+    
     [Property] ScorePanel _scorePanel = null;
     GameStatus _gameStatusComponent = null;
 
     protected override void OnStart()
     {
-        _gameStatusComponent = _scorePanel._gameStatusComponent;
+        if (_scorePanel != null)
+        {
+            _gameStatusComponent = _scorePanel._gameStatusComponent;
+        }
     }
 
     protected override void OnDisabled()
@@ -53,9 +58,18 @@
     async protected override void OnEnabled()
     {
         await Task.Delay(1);
+        if (!IsValid) return;
+
+        if (_gameStatusComponent == null && _scorePanel != null)
+        {
+            _gameStatusComponent = _scorePanel._gameStatusComponent;
+        }
+
         var board = Sandbox.Services.Leaderboards.GetFromStat("gmk.dino", "globalscore");
         board.MaxEntries = 5;
         await board.Refresh();
+
+        if (!IsValid) return;
 
         var entries = board.Entries;
         if (entries.Length >= 5)
@@ -69,13 +83,20 @@
 
         // обновляем загрузку статистики для локального игрока
         await Sandbox.Services.Stats.LocalPlayer.Refresh();
+        
+        if (!IsValid) return;
+
         var playerStat = Sandbox.Services.Stats.LocalPlayer.Get("globalscore");
-        ulong current = _gameStatusComponent.CurrentScore;
+        ulong current = _gameStatusComponent != null ? _gameStatusComponent.CurrentScore : 0;
         ulong saved = (ulong)playerStat.Value;
+        
         if (current > saved)
         {
             Sandbox.Services.Stats.Increment("globalscore", (long)(current - saved));
             await board.Refresh();
+            
+            if (!IsValid) return;
+
             var e2 = board.Entries;
             if (e2.Length >= 5)
             { 

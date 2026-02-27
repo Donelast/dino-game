@@ -39,7 +39,6 @@ public sealed class GameStatus : Component
 	[Property, Group( "Day/Night" )] List<GameObject> StarsGroup = null;
 	[Property, Group( "Day/Night" )] List<GameObject> ConstellationsGroup = null;
 	
-	// Ссылка на компонент Blur (перетащи с камеры)
 	[Property, Group("Effects")] public Blur CameraBlur { get; set; } 
 	
 	[Property, Group( "Difficulty" ), Range( 80f, 1400f )] private float _scoreDelay = 100f;
@@ -49,6 +48,8 @@ public sealed class GameStatus : Component
 		get => _scoreDelay;
 		set => _scoreDelay = Math.Clamp( value, 80f, 1400f );
 	}
+
+	public bool PterodactylsUnlocked { get; private set; } = false;
 
 	float _defaultScoreDelay;
 
@@ -87,7 +88,6 @@ public sealed class GameStatus : Component
 			return;
 		}
 
-		// При старте игры на всякий случай выключаем блюр
 		if ( CameraBlur != null )
 		{
 			CameraBlur.Enabled = false;
@@ -117,7 +117,12 @@ public sealed class GameStatus : Component
 		if ( _nightHoldTimer > 0f )
 		{
 			_nightHoldTimer -= Time.Delta;
-			if ( _nightHoldTimer < 0f ) _nightHoldTimer = 0f;
+			
+			if ( _nightHoldTimer <= 0f ) 
+			{
+				_nightHoldTimer = 0f;
+				PterodactylsUnlocked = true; 
+			}
 		}
 
 		float target = _nightHoldTimer > 0f ? 1f : 0f;
@@ -180,49 +185,32 @@ public sealed class GameStatus : Component
 
 	public async void KillPlayer()
 	{
-		// Если мы уже мертвы, не запускаем процесс второй раз
 		if (CurrentState == PlayerStates.Dead) return;
 
 		CurrentState = PlayerStates.Dead;
 		
-		// 1. Эффекты удара
 		Input.TriggerHaptics( 0.15f, 0.05f ); 
 		
-		// --- ЭФФЕКТ "УДАР" ---
 		if ( CameraBlur != null )
 		{
 			CameraBlur.Enabled = true;
-			// Ты просил уменьшить пик до 0.25
 			CameraBlur.Size = 0.25f; 
 		}
 
-		// --- ИСПРАВЛЕНИЕ ЗВУКА ---
-		// Сначала затыкаем звук прыжка, если он играет
 		_playerCharacterComponent._soundPoint.StopSound();
-		
-		// Сбрасываем Pitch в норму (1.0), чтобы звук смерти не пищал
 		_playerCharacterComponent._soundPoint.Pitch = 1.0f;
-		
-		// Ставим звук смерти и проигрываем
 		_playerCharacterComponent._soundPoint.SoundEvent = _playerCharacterComponent._hitHurtSound;
 		_playerCharacterComponent._soundPoint.StartSound();
 		
-		// ВАЖНО: Мы НЕ меняем звук обратно на JumpSound прямо здесь.
-		// Мы сделаем это в RestartGame, иначе движок может запутаться.
-
-		// Ждем первую фазу удара (0.1 сек)
 		await Task.Delay(100);
 
-		// --- ЗАТУХАНИЕ ---
 		if ( CameraBlur != null )
 		{
 			CameraBlur.Size = 0.15f; 
 		}
 		
-		// Ждем остаток времени (0.15 сек), чтобы игрок увидел результат
 		await Task.Delay(150);
 
-		// 3. Показываем меню и сбрасываем мир
 		DisplayMainMenu();
 		RestartGame();
 		SetDay();
@@ -300,7 +288,6 @@ public sealed class GameStatus : Component
 		_playerCharacterComponent._scorePanel.Enabled = true;
 		_playerCharacterComponent._mainMenu.Enabled = false;
 		
-		// Выключаем блюр при старте
 		if ( CameraBlur != null )
 		{
 			CameraBlur.Enabled = false; 
@@ -327,10 +314,10 @@ public sealed class GameStatus : Component
 		
 		_difficultyTimer = 0f;
 		
-		// --- ВАЖНО: Возвращаем звук прыжка здесь ---
-		// Теперь, когда мы начинаем новую игру, мы готовы снова прыгать
+		PterodactylsUnlocked = false;
+		
 		_playerCharacterComponent._soundPoint.SoundEvent = _playerCharacterComponent._jumpSound;
-		_playerCharacterComponent._soundPoint.Pitch = 1.0f; // Сброс питча на всякий случай
+		_playerCharacterComponent._soundPoint.Pitch = 1.0f; 
 	}
 
 	public void StartGame()
@@ -338,6 +325,9 @@ public sealed class GameStatus : Component
 		SetDay();
 		CurrentScore = 0;
 		_nightHoldTimer = 0f;
+		
+		PterodactylsUnlocked = false;
+
 		RecomputeNextNightThreshold( force: true );
 
 		CurrentState = PlayerStates.Playing;
@@ -393,18 +383,18 @@ public sealed class GameStatus : Component
 		switch ( CurrentDifficulty )
 		{
 			case DifficultyLevel.Easy:
-				_obstacleGeneratorComponent.SpawnDelay = 6000;
-				_obstacleGeneratorComponent.SpawnDistance = 1900f + speedBonus;
+				_obstacleGeneratorComponent.SpawnDelay = 2800;
+				_obstacleGeneratorComponent.SpawnDistance = 1400f + speedBonus;
 				break;
 
 			case DifficultyLevel.Medium:
-				_obstacleGeneratorComponent.SpawnDelay = 3600;
-				_obstacleGeneratorComponent.SpawnDistance = 1820f + speedBonus;
+				_obstacleGeneratorComponent.SpawnDelay = 1900;
+				_obstacleGeneratorComponent.SpawnDistance = 1300f + speedBonus;
 				break;
 
 			case DifficultyLevel.Hard:
-				_obstacleGeneratorComponent.SpawnDelay = 2430;
-				_obstacleGeneratorComponent.SpawnDistance = 1970f + speedBonus;
+				_obstacleGeneratorComponent.SpawnDelay = 1300;
+				_obstacleGeneratorComponent.SpawnDistance = 1250f + speedBonus;
 				break;
 		}
 	}

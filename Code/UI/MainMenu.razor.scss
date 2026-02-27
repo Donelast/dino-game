@@ -37,7 +37,7 @@
 	.top5-list {
 		display: flex;
 		flex-direction: column;
-		align-items: center;
+		align-items: flex-start;
 		gap: 0.24em;
 		font-size: 25px;
 		color: #444;

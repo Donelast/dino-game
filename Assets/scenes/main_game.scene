@@ -82,20 +82,6 @@
             }
           ],
           "TransitionSpeed": 0.5
-        },
-        {
-          "__type": "BackgroundRenderer",
-          "__guid": "3a925777-316d-48b3-bff8-75fe0dbc5994",
-          "__enabled": true,
-          "Flags": 0,
-          "CactusModel": "models/vmdl/cactus.vmdl",
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null,
-          "RockModel": "models/vmdl/rock1.vmdl"
         }
       ],
       "Children": [
@@ -136,7 +122,7 @@
               "OnTriggerEnter": {
                 "__version": 9,
                 "__guid": "3778d876-93da-4025-996e-fef63b5a706c",
-                "__changeId": 170,
+                "__changeId": 171,
                 "UserData": {
                   "Title": "On Collider Enter",
                   "ReferencedComponentTypes": []
@@ -407,13 +393,13 @@
                     "DstName": "_target"
                   },
                   {
-                    "Id": 112,
+                    "Id": 123,
                     "Value": false,
                     "DstId": 3,
                     "DstName": "includeAncestors"
                   },
                   {
-                    "Id": 113,
+                    "Id": 124,
                     "Value": "dino",
                     "DstId": 3,
                     "DstName": "tag"
@@ -443,7 +429,7 @@
                     "DstName": "a"
                   },
                   {
-                    "Id": 114,
+                    "Id": 125,
                     "Value": {
                       "$type": "Simple",
                       "Type": "System.Single",
@@ -525,7 +511,7 @@
                     "DstName": "_target"
                   },
                   {
-                    "Id": 115,
+                    "Id": 126,
                     "Value": false,
                     "DstId": 44,
                     "DstName": "_value"
@@ -543,7 +529,7 @@
                     "DstName": "_target"
                   },
                   {
-                    "Id": 116,
+                    "Id": 127,
                     "Value": true,
                     "DstId": 46,
                     "DstName": "_value"
@@ -573,7 +559,7 @@
                     "DstName": "_target"
                   },
                   {
-                    "Id": 117,
+                    "Id": 128,
                     "Value": -31542.395,
                     "DstId": 59,
                     "DstName": "x"
@@ -585,7 +571,7 @@
                     "DstName": "y"
                   },
                   {
-                    "Id": 118,
+                    "Id": 129,
                     "Value": 58.156,
                     "DstId": 59,
                     "DstName": "z"
@@ -597,7 +583,7 @@
                     "DstName": "_target"
                   },
                   {
-                    "Id": 119,
+                    "Id": 130,
                     "Value": -26649.463,
                     "DstId": 86,
                     "DstName": "x"
@@ -609,7 +595,7 @@
                     "DstName": "y"
                   },
                   {
-                    "Id": 120,
+                    "Id": 131,
                     "Value": 1674.177,
                     "DstId": 86,
                     "DstName": "z"
@@ -6781,13 +6767,13 @@
                     "DstName": "_target"
                   },
                   {
-                    "Id": 102,
+                    "Id": 113,
                     "Value": false,
                     "DstId": 3,
                     "DstName": "includeAncestors"
                   },
                   {
-                    "Id": 103,
+                    "Id": 114,
                     "Value": "dino",
                     "DstId": 3,
                     "DstName": "tag"
@@ -6817,7 +6803,7 @@
                     "DstName": "a"
                   },
                   {
-                    "Id": 104,
+                    "Id": 115,
                     "Value": {
                       "$type": "Simple",
                       "Type": "System.Single",
@@ -6899,7 +6885,7 @@
                     "DstName": "_target"
                   },
                   {
-                    "Id": 105,
+                    "Id": 116,
                     "Value": false,
                     "DstId": 57,
                     "DstName": "_value"
@@ -6917,7 +6903,7 @@
                     "DstName": "_target"
                   },
                   {
-                    "Id": 106,
+                    "Id": 117,
                     "Value": true,
                     "DstId": 58,
                     "DstName": "_value"
@@ -6947,7 +6933,7 @@
                     "DstName": "_target"
                   },
                   {
-                    "Id": 107,
+                    "Id": 118,
                     "Value": -31542.395,
                     "DstId": 67,
                     "DstName": "x"
@@ -6959,7 +6945,7 @@
                     "DstName": "y"
                   },
                   {
-                    "Id": 108,
+                    "Id": 119,
                     "Value": 58.156,
                     "DstId": 67,
                     "DstName": "z"
@@ -6971,7 +6957,7 @@
                     "DstName": "_target"
                   },
                   {
-                    "Id": 109,
+                    "Id": 120,
                     "Value": -26649.463,
                     "DstId": 81,
                     "DstName": "x"
@@ -6983,7 +6969,7 @@
                     "DstName": "y"
                   },
                   {
-                    "Id": 110,
+                    "Id": 121,
                     "Value": 1674.177,
                     "DstId": 81,
                     "DstName": "z"
@@ -14409,13 +14395,13 @@
                     "DstName": "_target"
                   },
                   {
-                    "Id": 55,
+                    "Id": 47,
                     "Value": false,
                     "DstId": 5,
                     "DstName": "includeAncestors"
                   },
                   {
-                    "Id": 56,
+                    "Id": 48,
                     "Value": "dino",
                     "DstId": 5,
                     "DstName": "tag"
@@ -14427,7 +14413,7 @@
                     "DstName": "_signal"
                   },
                   {
-                    "Id": 57,
+                    "Id": 49,
                     "Value": 0.05,
                     "DstId": 19,
                     "DstName": "seconds"
@@ -14457,7 +14443,7 @@
                     "DstName": "_target"
                   },
                   {
-                    "Id": 58,
+                    "Id": 50,
                     "Value": true,
                     "DstId": 46,
                     "DstName": "_value"
@@ -14738,7 +14724,7 @@
           "__version": 2,
           "Flags": 0,
           "Name": "Camera",
-          "Position": "-796.8594,-58.4201,117.6893",
+          "Position": "-858.375,-58.4201,117.6893",
           "Rotation": "0,0,0,1",
           "Scale": "1,1,1",
           "Tags": "maincamera",

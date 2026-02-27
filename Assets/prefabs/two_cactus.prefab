@@ -17,7 +17,7 @@
     "Children": [
       {
         "__guid": "d3c827a7-e91a-4fb6-b40e-66d853ac59c8",
-        "__version": 1,
+        "__version": 2,
         "__Prefab": "prefabs/cactus.prefab",
         "__PrefabInstancePatch": {
           "AddedObjects": [],
@@ -59,7 +59,7 @@
       },
       {
         "__guid": "cbec5cc8-f496-4104-a871-c053e05d86c8",
-        "__version": 1,
+        "__version": 2,
         "__Prefab": "prefabs/cactus.prefab",
         "__PrefabInstancePatch": {
           "AddedObjects": [],
